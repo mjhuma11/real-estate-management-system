@@ -1,0 +1,117 @@
+
+{
+  "hero": {
+    "title": "Find Your Dream Property with NETRO Real Estate",
+    "subtitle": "Discover premium residential and commercial properties in prime locations. Your perfect home or investment opportunity awaits.",
+    "buttons": {
+      "primary": "Browse Properties",
+      "secondary": "Contact Us"
+    }
+  },
+  "propertySearch": {
+    "title": "Quick Property Search",
+    "fields": [
+      {
+        "type": "select",
+        "placeholder": "Property Type",
+        "options": ["Apartment", "House", "Commercial"]
+      },
+      {
+        "type": "select",
+        "placeholder": "Location",
+        "options": ["Dhaka", "Chittagong", "Sylhet"]
+      },
+      {
+        "type": "text",
+        "placeholder": "Min Price"
+      },
+      {
+        "type": "text",
+        "placeholder": "Max Price"
+      }
+    ],
+    "buttonText": "Search Properties"
+  },
+  "featuredProperties": {
+    "title": "Featured Properties",
+    "subtitle": "Discover our handpicked selection of premium properties",
+    "properties": [
+      {
+        "image": "https://stock.adobe.com/search?k=real+estate&asset_id=473721132",
+        "status": "For Sale",
+        "featured": true,
+        "title": "Luxury Apartment in Gulshan",
+        "location": "Gulshan, Dhaka",
+        "description": "Modern 3-bedroom apartment with premium amenities and city views.",
+        "price": "৳ 2,50,00,000",
+        "specs": "3 bed • 2 bath"
+      },
+      {
+        "image": "https://images.unsplash.com/photo-1554469384-e58fac16e23a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "status": "For Rent",
+        "featured": false,
+        "title": "Commercial Space in Motijheel",
+        "location": "Motijheel, Dhaka",
+        "description": "Prime commercial space perfect for offices and retail businesses.",
+        "price": "৳ 80,000/month",
+        "specs": "2000 sq ft"
+      },
+      {
+        "image": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "status": "For Sale",
+        "featured": true,
+        "title": "Luxury Apartment in Gulshan",
+        "location": "Gulshan, Dhaka",
+        "description": "Modern 3-bedroom apartment with premium amenities and city views.",
+        "price": "৳ 2,50,00,000",
+        "specs": "3 bed • 2 bath"
+      },
+      {
+        "image": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "status": "For Sale",
+        "featured": false,
+        "title": "Family House in Dhanmondi",
+        "location": "Dhanmondi, Dhaka",
+        "description": "Spacious family home with garden and modern facilities.",
+        "price": "৳ 3,20,00,000",
+        "specs": "4 bed • 3 bath"
+      }
+    ],
+    "buttonText": "View All Properties"
+  },
+  "statistics": [
+    { "value": "500+", "label": "Properties Sold" },
+    { "value": "1000+", "label": "Happy Clients" },
+    { "value": "15+", "label": "Years Experience" },
+    { "value": "50+", "label": "Expert Agents" }
+  ],
+  "whyChooseUs": {
+    "title": "Why Choose NETRO Real Estate?",
+    "subtitle": "We provide exceptional service and expertise in the real estate market",
+    "reasons": [
+      {
+        "icon": "fas fa-home",
+        "title": "Premium Properties",
+        "description": "Carefully curated selection of high-quality residential and commercial properties in prime locations."
+      },
+      {
+        "icon": "fas fa-users",
+        "title": "Expert Team",
+        "description": "Professional real estate agents with years of experience and deep market knowledge."
+      },
+      {
+        "icon": "fas fa-handshake",
+        "title": "Trusted Service",
+        "description": "Transparent processes, honest pricing, and dedicated customer support throughout your journey."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to Find Your Dream Property?",
+    "subtitle": "Contact our expert team today and let us help you find the perfect property",
+    "buttons": {
+      "primary": "Get Started",
+      "secondary": "Schedule Consultation"
+    }
+  }
+}
