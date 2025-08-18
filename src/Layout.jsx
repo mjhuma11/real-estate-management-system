@@ -1,6 +1,15 @@
 import { Outlet, Link } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "./contexts/AuthContext";
 
 const Layout = () => {
+    const { user, isAuthenticated, logout, isAdmin } = useContext(AuthContext);
+    
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/';
+    };
+
     return (
         <div>
             {/* Top Header */}
@@ -47,19 +56,60 @@ const Layout = () => {
                             <li className="nav-item">
                                 <Link className="nav-link fw-semibold" to="/services">Services</Link>
                             </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold" to="/projects">Projects</Link>
+                            <li className="nav-item dropdown">
+                                <a className="nav-link dropdown-toggle fw-semibold" href="#" id="projectsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Projects
+                                </a>
+                                <ul className="dropdown-menu" aria-labelledby="projectsDropdown">
+                                    <li><Link className="dropdown-item" to="/projects/completed">Completed</Link></li>
+                                    <li><Link className="dropdown-item" to="/projects/ongoing">Ongoing</Link></li>
+                                    <li><Link className="dropdown-item" to="/projects/upcoming">Upcoming</Link></li>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li><Link className="dropdown-item" to="/projects">All Projects</Link></li>
+                                </ul>
                             </li>
-                          
                             <li className="nav-item">
                                 <Link className="nav-link fw-semibold" to="/contact">Contact</Link>
                             </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold" to="/login">Login</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold" to="/register">Register</Link>
-                            </li>
+                            {isAuthenticated() ? (
+                                <>
+                                    <li className="nav-item dropdown">
+                                        <a className="nav-link dropdown-toggle fw-semibold" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i className="fas fa-user me-2"></i>
+                                            {user?.username || user?.email || 'User'}
+                                        </a>
+                                        <ul className="dropdown-menu" aria-labelledby="userDropdown">
+                                            {isAdmin() && (
+                                                <li>
+                                                    <Link className="dropdown-item" to="/admin">
+                                                        <i className="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                                                    </Link>
+                                                </li>
+                                            )}
+                                            <li>
+                                                <Link className="dropdown-item" to="/profile">
+                                                    <i className="fas fa-user-cog me-2"></i>Profile
+                                                </Link>
+                                            </li>
+                                            <li><hr className="dropdown-divider" /></li>
+                                            <li>
+                                                <button className="dropdown-item text-danger" onClick={handleLogout}>
+                                                    <i className="fas fa-sign-out-alt me-2"></i>Logout
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </>
+                            ) : (
+                                <>
+                                    <li className="nav-item">
+                                        <Link className="nav-link fw-semibold" to="/login">Login</Link>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Link className="nav-link fw-semibold" to="/register">Register</Link>
+                                    </li>
+                                </>
+                            )}
                         </ul>
                     </div>
                 </div>

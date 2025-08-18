@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Property - NETRO Real Estate</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Property</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="propertyForm">
+                            <!-- Basic Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">Basic Information</h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="title" class="form-label">Property Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="type" class="form-label">Property Type *</label>
+                                    <select class="form-select" id="type" name="type" required>
+                                        <option value="">Select Type</option>
+                                        <option value="For Sale">For Sale</option>
+                                        <option value="For Rent">For Rent</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Pricing -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">Pricing</h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="price" class="form-label">Price (BDT)</label>
+                                    <input type="number" class="form-control" id="price" name="price" placeholder="e.g., 8500000">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="monthly_rent" class="form-label">Monthly Rent (BDT)</label>
+                                    <input type="number" class="form-control" id="monthly_rent" name="monthly_rent" placeholder="e.g., 50000">
+                                </div>
+                            </div>
+
+                            <!-- Property Details -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">Property Details</h5>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="bedrooms" class="form-label">Bedrooms</label>
+                                    <input type="number" class="form-control" id="bedrooms" name="bedrooms" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="bathrooms" class="form-label">Bathrooms</label>
+                                    <input type="number" class="form-control" id="bathrooms" name="bathrooms" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="area" class="form-label">Area</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="area" name="area" min="0">
+                                        <select class="form-select" id="area_unit" name="area_unit" style="max-width: 100px;">
+                                            <option value="sq_ft">sq ft</option>
+                                            <option value="sq_m">sq m</option>
+                                            <option value="katha">katha</option>
+                                            <option value="bigha">bigha</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="floor" class="form-label">Floor</label>
+                                    <input type="number" class="form-control" id="floor" name="floor" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="total_floors" class="form-label">Total Floors</label>
+                                    <input type="number" class="form-control" id="total_floors" name="total_floors" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="facing" class="form-label">Facing</label>
+                                    <select class="form-select" id="facing" name="facing">
+                                        <option value="">Select Facing</option>
+                                        <option value="North">North</option>
+                                        <option value="South">South</option>
+                                        <option value="East">East</option>
+                                        <option value="West">West</option>
+                                        <option value="North-East">North-East</option>
+                                        <option value="North-West">North-West</option>
+                                        <option value="South-East">South-East</option>
+                                        <option value="South-West">South-West</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="parking" class="form-label">Parking Spaces</label>
+                                    <input type="number" class="form-control" id="parking" name="parking" min="0" value="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="balcony" class="form-label">Balcony</label>
+                                    <input type="number" class="form-control" id="balcony" name="balcony" min="0" value="0">
+                                </div>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">Location</h5>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Additional Options -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">Additional Options</h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="featured" name="featured" value="1">
+                                        <label class="form-check-label" for="featured">
+                                            Featured Property
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="available">Available</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="sold">Sold</option>
+                                        <option value="rented">Rented</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-save me-2"></i>Add Property
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Result Message -->
+                        <div id="result" class="mt-4" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('propertyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Convert form data to object
+            for (let [key, value] of formData.entries()) {
+                if (key === 'featured') {
+                    data[key] = value === '1' ? 1 : 0;
+                } else if (value !== '') {
+                    data[key] = value;
+                }
+            }
+            
+            try {
+                const response = await fetch('add-property.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            ${result.message}<br>
+                            Property ID: ${result.property_id}<br>
+                            Slug: ${result.slug}
+                        </div>
+                    `;
+                    document.getElementById('propertyForm').reset();
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            ${result.error}
+                        </div>
+                    `;
+                }
+                
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        An error occurred while adding the property.
+                    </div>
+                `;
+                document.getElementById('result').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

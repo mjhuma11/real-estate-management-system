@@ -1,4 +1,60 @@
+import { useState } from 'react';
+import { contactAPI } from './services/api';
+
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+    newsletter: false
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+
+    try {
+      const contactData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message
+      };
+
+      await contactAPI.submit(contactData);
+      setSuccess(true);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        newsletter: false
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div>
       {/* Hero Section */}
@@ -64,50 +120,131 @@ const Contact = () => {
               <div className="card border-0 shadow-sm">
                 <div className="card-body p-5">
                   <h3 className="fw-bold mb-4">Send Us a Message</h3>
-                  <form>
+                  {success && (
+                    <div className="alert alert-success" role="alert">
+                      <i className="fas fa-check-circle me-2"></i>
+                      Thank you for your message! We'll get back to you soon.
+                    </div>
+                  )}
+                  
+                  {error && (
+                    <div className="alert alert-danger" role="alert">
+                      <i className="fas fa-exclamation-triangle me-2"></i>
+                      {error}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit}>
                     <div className="row g-3">
                       <div className="col-md-6">
                         <label htmlFor="firstName" className="form-label">First Name *</label>
-                        <input type="text" className="form-control" id="firstName" required />
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          id="firstName" 
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          required 
+                        />
                       </div>
                       <div className="col-md-6">
                         <label htmlFor="lastName" className="form-label">Last Name *</label>
-                        <input type="text" className="form-control" id="lastName" required />
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          id="lastName" 
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          required 
+                        />
                       </div>
                       <div className="col-md-6">
                         <label htmlFor="email" className="form-label">Email Address *</label>
-                        <input type="email" className="form-control" id="email" required />
+                        <input 
+                          type="email" 
+                          className="form-control" 
+                          id="email" 
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required 
+                        />
                       </div>
                       <div className="col-md-6">
                         <label htmlFor="phone" className="form-label">Phone Number</label>
-                        <input type="tel" className="form-control" id="phone" />
+                        <input 
+                          type="tel" 
+                          className="form-control" 
+                          id="phone" 
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                        />
                       </div>
                       <div className="col-12">
                         <label htmlFor="subject" className="form-label">Subject *</label>
-                        <select className="form-select" id="subject" required>
+                        <select 
+                          className="form-select" 
+                          id="subject" 
+                          name="subject"
+                          value={formData.subject}
+                          onChange={handleInputChange}
+                          required
+                        >
                           <option value="">Select a subject</option>
-                          <option value="buying">Property Buying</option>
-                          <option value="selling">Property Selling</option>
-                          <option value="renting">Property Renting</option>
-                          <option value="investment">Investment Consulting</option>
-                          <option value="management">Property Management</option>
-                          <option value="other">Other</option>
+                          <option value="Property Buying">Property Buying</option>
+                          <option value="Property Selling">Property Selling</option>
+                          <option value="Property Renting">Property Renting</option>
+                          <option value="Investment Consulting">Investment Consulting</option>
+                          <option value="Property Management">Property Management</option>
+                          <option value="Other">Other</option>
                         </select>
                       </div>
                       <div className="col-12">
                         <label htmlFor="message" className="form-label">Message *</label>
-                        <textarea className="form-control" id="message" rows="5" placeholder="Tell us about your requirements..." required></textarea>
+                        <textarea 
+                          className="form-control" 
+                          id="message" 
+                          name="message"
+                          rows="5" 
+                          placeholder="Tell us about your requirements..." 
+                          value={formData.message}
+                          onChange={handleInputChange}
+                          required
+                        ></textarea>
                       </div>
                       <div className="col-12">
                         <div className="form-check">
-                          <input className="form-check-input" type="checkbox" id="newsletter" />
+                          <input 
+                            className="form-check-input" 
+                            type="checkbox" 
+                            id="newsletter" 
+                            name="newsletter"
+                            checked={formData.newsletter}
+                            onChange={handleInputChange}
+                          />
                           <label className="form-check-label" htmlFor="newsletter">
                             I would like to receive updates about new properties and market insights
                           </label>
                         </div>
                       </div>
                       <div className="col-12">
-                        <button type="submit" className="btn btn-primary btn-lg px-5">Send Message</button>
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary btn-lg px-5"
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                              Sending...
+                            </>
+                          ) : (
+                            'Send Message'
+                          )}
+                        </button>
                       </div>
                     </div>
                   </form>

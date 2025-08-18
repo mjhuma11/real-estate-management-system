@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Property API Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: GET Request (Form Options)</h3>
+        <button onclick="testGetRequest()">Test GET Request</button>
+        <div id="getResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: POST Request (Add Property)</h3>
+        <button onclick="testPostRequest()">Test POST Request</button>
+        <div id="postResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: List Properties</h3>
+        <button onclick="testListProperties()">Test List Properties</button>
+        <div id="listResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/WDPF/React-project/real-estate-management-system/API/';
+        
+        async function testGetRequest() {
+            const resultDiv = document.getElementById('getResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(API_BASE + 'add-property.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseText = await response.text();
+                console.log('GET Response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ JSON Parse Error</h4>
+                        <p>Response: ${responseText}</p>
+                        <p>Error: ${e.message}</p>
+                    </div>`;
+                    return;
+                }
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="success">
+                        <h4>✅ GET Request Successful</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ GET Request Failed</h4>
+                        <p>Error: ${data.error}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">
+                    <h4>❌ Network Error</h4>
+                    <p>Error: ${error.message}</p>
+                </div>`;
+            }
+        }
+        
+        async function testPostRequest() {
+            const resultDiv = document.getElementById('postResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            const testData = {
+                title: 'Test Property ' + new Date().toISOString(),
+                type: 'For Sale',
+                price: 5000000,
+                description: 'This is a test property created from browser',
+                bedrooms: 3,
+                bathrooms: 2,
+                area: 1200,
+                area_unit: 'sq_ft',
+                status: 'available',
+                featured: 0
+            };
+            
+            try {
+                const response = await fetch(API_BASE + 'add-property.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const responseText = await response.text();
+                console.log('POST Response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ JSON Parse Error</h4>
+                        <p>Response: ${responseText}</p>
+                        <p>Error: ${e.message}</p>
+                    </div>`;
+                    return;
+                }
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="success">
+                        <h4>✅ POST Request Successful</h4>
+                        <p>Property ID: ${data.property_id}</p>
+                        <p>Slug: ${data.slug}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ POST Request Failed</h4>
+                        <p>Error: ${data.error}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">
+                    <h4>❌ Network Error</h4>
+                    <p>Error: ${error.message}</p>
+                </div>`;
+            }
+        }
+        
+        async function testListProperties() {
+            const resultDiv = document.getElementById('listResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(API_BASE + 'list-properties.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseText = await response.text();
+                console.log('List Response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ JSON Parse Error</h4>
+                        <p>Response: ${responseText}</p>
+                        <p>Error: ${e.message}</p>
+                    </div>`;
+                    return;
+                }
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="success">
+                        <h4>✅ List Properties Successful</h4>
+                        <p>Total Properties: ${data.total_properties}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">
+                        <h4>❌ List Properties Failed</h4>
+                        <p>Error: ${data.error}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">
+                    <h4>❌ Network Error</h4>
+                    <p>Error: ${error.message}</p>
+                </div>`;
+            }
+        }
+    </script>
+</body>
+</html>

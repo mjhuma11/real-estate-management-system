@@ -1,0 +1,57 @@
+[13-Aug-2025 20:12:10 Europe/Berlin] === New Registration Request ===
+[13-Aug-2025 20:12:10 Europe/Berlin] Request Method: POST
+[13-Aug-2025 20:12:10 Europe/Berlin] Content Type: application/json
+[13-Aug-2025 20:12:10 Europe/Berlin] Raw input: {"fullName":"jhum","email":"jhum@gmail.com","password":"123456"}
+[13-Aug-2025 20:12:10 Europe/Berlin] Database connection successful
+[13-Aug-2025 20:12:10 Europe/Berlin] Auth instance created
+[13-Aug-2025 20:12:10 Europe/Berlin] Decoded JSON data: stdClass Object
+(
+    [fullName] => jhum
+    [email] => jhum@gmail.com
+    [password] => 123456
+)
+
+[13-Aug-2025 20:12:10 Europe/Berlin] Starting registration for email: jhum@gmail.com
+[13-Aug-2025 20:12:10 Europe/Berlin] Executing query: INSERT INTO users (name, email, password, role, status) VALUES (:name, :email, :password, 'customer', 'active')
+Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+(index):1 Access to fetch at 'http://localhost/real-estate-management-system/API/properties.php?featured=1' from origin 'http://localhost:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api.js:7 
+ GET http://localhost/real-estate-management-system/API/properties.php?featured=1 net::ERR_FAILED
+api.js:23 API Error: TypeError: Failed to fetch
+    at apiCall (api.js:7:28)
+    at Object.getFeatured (api.js:51:12)
+    at fetchFeaturedProperties (Home.jsx:19:44)
+    at Home.jsx:14:5
+Home.jsx:22 Error fetching featured properties: TypeError: Failed to fetch
+    at apiCall (api.js:7:28)
+    at Object.getFeatured (api.js:51:12)
+    at fetchFeaturedProperties (Home.jsx:19:44)
+    at Home.jsx:14:5
+(index):1 Access to fetch at 'http://localhost/real-estate-management-system/API/properties.php?featured=1' from origin 'http://localhost:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api.js:7 
+ GET http://localhost/real-estate-management-system/API/properties.php?featured=1 net::ERR_FAILED
+api.js:23 API Error: TypeError: Failed to fetch
+    at apiCall (api.js:7:28)
+    at Object.getFeatured (api.js:51:12)
+    at fetchFeaturedProperties (Home.jsx:19:44)
+    at Home.jsx:14:5
+Home.jsx:22 Error fetching featured properties: TypeError: Failed to fetch
+    at apiCall (api.js:7:28)
+    at Object.getFeatured (api.js:51:12)
+    at fetchFeaturedProperties (Home.jsx:19:44)
+    at Home.jsx:14:5
+:5173/register:1 Access to XMLHttpRequest at 'http://localhost/WDPF/Projects/real-estate-management-system/API'/register.php' from origin 'http://localhost:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+Register.jsx:70 Registration error: 
+AxiosError {message: 'Network Error', name: 'AxiosError', code: 'ERR_NETWORK', config: {…}, request: XMLHttpRequest, …}
+Register.jsx:71 Error response: undefined
+Register.jsx:86 No response received: 
+XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 0, withCredentials: false, upload: XMLHttpRequestUpload, …}
+Register.jsx:42 
+ POST http://localhost/WDPF/Projects/real-estate-management-system/API'/register.php net::ERR_FAILED
+handleSubmit	@	Register.jsx:42
+<form>		
+Register	@	Register.jsx:123
+<Register>		
+App	@	App.jsx:44
+<App>		
+(anonymous)	@	main.jsx:14 plz read my project files and solve this issues

@@ -1,14 +1,37 @@
 
 import { Link } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { propertiesAPI } from './services/api';
+import AuthContext from './contexts/AuthContext';
 
 const Home = () => {
- 
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated } = useContext(AuthContext);
+
   useEffect(() => {
     AOS.init();
+    fetchFeaturedProperties();
   }, []);
+
+  const fetchFeaturedProperties = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}featured-properties.php`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setFeaturedProperties(data.properties || []);
+      } else {
+        console.error('Error fetching featured properties:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching featured properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     
@@ -27,8 +50,15 @@ const Home = () => {
         <div className="container">
           <div className="row align-items-center min-vh-50">
             <div className="col-lg-6">
-              <h2 className="display-4 fw-bold mb-4">Find Your Dream Property with NETRO Real Estate</h2>
-              <p className="lead mb-4">Discover premium residential and commercial properties in prime locations. Your perfect home or investment opportunity awaits.</p>
+              <h2 className="display-4 fw-bold mb-4">
+                {isAuthenticated() ? `Welcome back, ${user?.username || user?.email}!` : 'Find Your Dream Property with NETRO Real Estate'}
+              </h2>
+              <p className="lead mb-4">
+                {isAuthenticated() 
+                  ? 'Continue exploring our premium properties and find your perfect match.'
+                  : 'Discover premium residential and commercial properties in prime locations. Your perfect home or investment opportunity awaits.'
+                }
+              </p>
               <div className="d-flex gap-3">
                 {/* <button className="btn btn-light btn-lg px-4">Browse Properties</button> */}
                 <Link to="/properties" className="btn btn-light btn-lg px-4">Browse Properties</Link>
@@ -88,219 +118,82 @@ const Home = () => {
             </div>
           </div>
           <div className="row g-4">
-            <div className="col-lg-4 col-md-6"data-aos="fade-right"
-     data-aos-offset="2000"
-     data-aos-easing="ease-in-sine">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-            src="/images/urban-building (1).jpg" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
+            {loading ? (
+              <div className="col-12 text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
                 </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
+                <p className="mt-3">Loading featured properties...</p>
+              </div>
+            ) : featuredProperties.length > 0 ? (
+              featuredProperties.slice(0, 6).map((property, index) => (
+                <div key={property.id} className={`col-lg-4 col-md-6 ${index === 0 ? 'data-aos="fade-right" data-aos-offset="2000" data-aos-easing="ease-in-sine"' : index === 1 ? 'data-aos="fade-up" data-aos-offset="500" data-aos-easing="ease-in-sine"' : 'data-aos="fade-left" data-aos-offset="500" data-aos-easing="ease-in-sine"'}`}>
+                  <div className="card h-100 shadow-sm">
+                    <div className="position-relative">
+                      <img 
+                        src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"} 
+                        alt={property.title} 
+                        className="img-fluid w-100" 
+                        style={{height: '250px', objectFit: 'cover'}}
+                      />
+                      <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
+                        {property.type}
+                      </span>
+                      <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
+                    </div>
+                    <div className="card-body">
+                      <h5 className="card-title fw-bold">{property.title}</h5>
+                      <p className="text-muted mb-2">
+                        <i className="fas fa-map-marker-alt me-2"></i>
+                        {property.location_name || property.address}
+                      </p>
+                      <p className="card-text">{property.description ? property.description.substring(0, 80) + '...' : 'Modern property with premium amenities.'}</p>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h6 className="text-primary fw-bold mb-0">
+                          {property.type === 'For Sale' 
+                            ? (property.price ? `৳ ${new Intl.NumberFormat('en-IN').format(property.price)}` : 'Price on request')
+                            : (property.monthly_rent ? `৳ ${new Intl.NumberFormat('en-IN').format(property.monthly_rent)}/month` : 'Rent on request')
+                          }
+                        </h6>
+                        <small className="text-muted">
+                          {property.bedrooms ? `${property.bedrooms} bed` : ''} 
+                          {property.bedrooms && property.bathrooms ? ' • ' : ''}
+                          {property.bathrooms ? `${property.bathrooms} bath` : ''}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Fallback to original hardcoded properties if no featured properties from database
+              <div className="col-lg-4 col-md-6" data-aos="fade-right" data-aos-offset="2000" data-aos-easing="ease-in-sine">
+                <div className="card h-100 shadow-sm">
+                  <div className="position-relative">
+                    <img 
+                      src="/images/urban-building (1).jpg" 
+                      alt="Luxury Apartment" 
+                      className="img-fluid w-100" 
+                      style={{height: '250px', objectFit: 'cover'}}
+                    />
+                    <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
+                    <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
+                  </div>
+                  <div className="card-body">
+                    <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
+                    <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
+                    <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
+                      <small className="text-muted">3 bed • 2 bath</small>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-4 col-md-6"data-aos="fade-up"
-     data-aos-offset="500"
-     data-aos-easing="ease-in-sine">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/urban-building (2).jpg" 
-              alt="Commercial Space" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-success position-absolute top-0 start-0 m-3">For Rent</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Commercial Space in Motijheel</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Motijheel, Dhaka</p>
-                  <p className="card-text">Prime commercial space perfect for offices and retail businesses.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 80,000/month</h6>
-                    <small className="text-muted">2000 sq ft</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-             <div className="col-lg-4 col-md-6"data-aos="fade-left"
-     data-aos-offset="500"
-     data-aos-easing="ease-in-sine">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/urban-building (3).jpg" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Netro Garden Residency</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-             <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/banner-1.jpg" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Modern Apartment in Uttara</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-             <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/img.jpg" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Duplex Villa in Uttara</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-             <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/img2.jpg" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-             <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="/images/img3.jpg"  
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-             <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                          <img 
-              src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-              alt="Luxury Apartment" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                  <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                  <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                    <small className="text-muted">3 bed • 2 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="card h-100 shadow-sm">
-                <div className="position-relative">
-                        <img 
-              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-              alt="Family House" 
-              className="img-fluid w-100" 
-              style={{height: '250px', objectFit: 'cover'}}
-            />
-                  <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Family House in Dhanmondi</h5>
-                  <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Dhanmondi, Dhaka</p>
-                  <p className="card-text">Spacious family home with garden and modern facilities.</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="text-primary fw-bold mb-0">৳ 3,20,00,000</h6>
-                    <small className="text-muted">4 bed • 3 bath</small>
-                  </div>
-                </div>
-              </div>
-            </div>
+
+            )}
           </div>
+
           <div className="text-center mt-5">
             <Link to="/Properties" className="btn btn-primary btn-lg px-5">View All Properties</Link>
            

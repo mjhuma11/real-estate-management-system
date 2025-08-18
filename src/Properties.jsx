@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from "react-router-dom";
+import { propertiesAPI, locationsAPI, propertyTypesAPI } from './services/api';
 
 
 const Properties = () => {
@@ -10,6 +11,77 @@ const Properties = () => {
     bedrooms: '',
     saleType: ''
   });
+
+  const [properties, setProperties] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({});
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  // Fetch properties when filters change
+  useEffect(() => {
+    fetchProperties();
+  }, [filters]);
+
+  const fetchInitialData = async () => {
+    try {
+      const [locationsData, propertyTypesData] = await Promise.all([
+        locationsAPI.getByType('area'),
+        propertyTypesAPI.getAll()
+      ]);
+
+      setLocations(locationsData.data || []);
+      setPropertyTypes(propertyTypesData.data || []);
+    } catch (err) {
+      console.error('Error fetching initial data:', err);
+      setError('Failed to load initial data');
+    }
+  };
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      
+      // Build API filters
+      const apiFilters = {};
+      
+      if (filters.propertyType) {
+        apiFilters.property_type = filters.propertyType;
+      }
+      
+      if (filters.location) {
+        apiFilters.location = filters.location;
+      }
+      
+      if (filters.saleType) {
+        apiFilters.type = filters.saleType;
+      }
+      
+      if (filters.bedrooms) {
+        const bedroomCount = filters.bedrooms.replace(/[^\d]/g, '');
+        if (bedroomCount) {
+          apiFilters.bedrooms = bedroomCount;
+        }
+      }
+
+      const response = await propertiesAPI.getAll(apiFilters);
+      setProperties(response.data || []);
+      setPagination(response.pagination || {});
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching properties:', err);
+      setError('Failed to load properties');
+      setProperties([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const allProperties = [
     {
@@ -92,69 +164,8 @@ const Properties = () => {
     }
   ];
 
-  // Filter properties based on search criteria
-  const filteredProperties = useMemo(() => {
-    return allProperties.filter(property => {
-      // Property type filter
-      if (filters.propertyType && filters.propertyType !== 'Property Type') {
-        if (property.propertyType !== filters.propertyType) return false;
-      }
-
-      // Location filter
-      if (filters.location && filters.location !== 'Location') {
-        if (!property.location.toLowerCase().includes(filters.location.toLowerCase())) {
-          return false;
-        }
-      }
-
-      // Price range filter
-      if (filters.priceRange && filters.priceRange !== 'Price Range') {
-        const price = property.price.replace(/[৳,]/g, '').replace('/month', '');
-        const numPrice = parseInt(price);
-
-        switch (filters.priceRange) {
-          case 'Under ৳50,000':
-            if (numPrice >= 50000) return false;
-            break;
-          case '৳50,000 - ৳1,00,000':
-            if (numPrice < 50000 || numPrice > 100000) return false;
-            break;
-          case '৳1,00,000 - ৳2,00,000':
-            if (numPrice < 100000 || numPrice > 200000) return false;
-            break;
-          case 'Above ৳2,00,000':
-            if (numPrice <= 200000) return false;
-            break;
-        }
-      }
-
-      // Bedrooms filter
-      if (filters.bedrooms && filters.bedrooms !== 'Bedrooms') {
-        const bedroomCount = property.bedrooms;
-        switch (filters.bedrooms) {
-          case '1 Bedroom':
-            if (bedroomCount !== 1) return false;
-            break;
-          case '2 Bedrooms':
-            if (bedroomCount !== 2) return false;
-            break;
-          case '3 Bedrooms':
-            if (bedroomCount !== 3) return false;
-            break;
-          case '4+ Bedrooms':
-            if (bedroomCount < 4) return false;
-            break;
-        }
-      }
-
-      // Sale type filter
-      if (filters.saleType && filters.saleType !== 'For Sale/Rent') {
-        if (property.type !== filters.saleType) return false;
-      }
-
-      return true;
-    });
-  }, [allProperties, filters]);
+  // Use properties from API instead of filtering locally
+  const filteredProperties = properties;
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
@@ -207,10 +218,9 @@ const Properties = () => {
                         onChange={(e) => handleFilterChange('propertyType', e.target.value)}
                       >
                         <option value="">Property Type</option>
-                        <option value="Apartment">Apartment</option>
-                        <option value="House">House</option>
-                        <option value="Commercial">Commercial</option>
-                        <option value="Villa">Villa</option>
+                        {propertyTypes.map(type => (
+                          <option key={type.id} value={type.name}>{type.name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="col-lg-2 col-md-4">
@@ -220,12 +230,9 @@ const Properties = () => {
                         onChange={(e) => handleFilterChange('location', e.target.value)}
                       >
                         <option value="">Location</option>
-                        <option value="Gulshan">Gulshan</option>
-                        <option value="Dhanmondi">Dhanmondi</option>
-                        <option value="Banani">Banani</option>
-                        <option value="Uttara">Uttara</option>
-                        <option value="Motijheel">Motijheel</option>
-                        <option value="Bashundhara">Bashundhara</option>
+                        {locations.map(location => (
+                          <option key={location.id} value={location.name}>{location.name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="col-lg-2 col-md-4">
@@ -297,9 +304,14 @@ const Properties = () => {
             <div className="col-md-6">
               <h3 className="fw-bold">Available Properties</h3>
               <p className="text-muted">
-                Showing {filteredProperties.length} of {allProperties.length} properties
-                {Object.values(filters).some(filter => filter) && (
-                  <span className="text-primary"> (filtered)</span>
+                {loading ? 'Loading...' : (
+                  <>
+                    Showing {filteredProperties.length} properties
+                    {pagination.total_items && ` of ${pagination.total_items} total`}
+                    {Object.values(filters).some(filter => filter) && (
+                      <span className="text-primary"> (filtered)</span>
+                    )}
+                  </>
                 )}
               </p>
             </div>
@@ -319,7 +331,25 @@ const Properties = () => {
           </div>
 
           <div className="row g-4">
-            {filteredProperties.length === 0 ? (
+            {loading ? (
+              <div className="col-12 text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-3">Loading properties...</p>
+              </div>
+            ) : error ? (
+              <div className="col-12 text-center py-5">
+                <div className="text-danger">
+                  <i className="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                  <h4>Error Loading Properties</h4>
+                  <p>{error}</p>
+                  <button className="btn btn-primary" onClick={fetchProperties}>
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            ) : filteredProperties.length === 0 ? (
               <div className="col-12 text-center py-5">
                 <div className="text-muted">
                   <i className="fas fa-search fa-3x mb-3"></i>
@@ -336,7 +366,7 @@ const Properties = () => {
                   <div className="card h-100 shadow-sm">
                     <div className="position-relative">
                       <img
-                        src={property.image}
+                        src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'}
                         alt={property.title}
                         className="img-fluid w-100"
                         style={{ height: '250px', objectFit: 'cover' }}
@@ -344,7 +374,7 @@ const Properties = () => {
                       <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
                         {property.type}
                       </span>
-                      {property.featured && (
+                      {property.featured == 1 && (
                         <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
                       )}
                       <div className="position-absolute bottom-0 end-0 m-3">
@@ -359,7 +389,7 @@ const Properties = () => {
                     <div className="card-body">
                       <h5 className="card-title fw-bold">{property.title}</h5>
                       <p className="text-muted mb-2">
-                        <i className="fas fa-map-marker-alt me-2"></i>{property.location}
+                        <i className="fas fa-map-marker-alt me-2"></i>{property.location_name || property.address}
                       </p>
                       <div className="row g-2 mb-3">
                         {property.bedrooms && (
@@ -376,12 +406,14 @@ const Properties = () => {
                         </div>
                         <div className="col-4">
                           <small className="text-muted">
-                            <i className="fas fa-ruler-combined me-1"></i>{property.area}
+                            <i className="fas fa-ruler-combined me-1"></i>{property.area} sq ft
                           </small>
                         </div>
                       </div>
                       <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="text-primary fw-bold mb-0">{property.price}</h6>
+                        <h6 className="text-primary fw-bold mb-0">
+                          {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
+                        </h6>
                         <Link
                           to={`/property/${property.id}`}
                           className="btn btn-outline-primary btn-sm"
