@@ -1,3 +1,6 @@
-const API_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API/';
+const config = {
+    API_URL: 'http://localhost/WDPF/React-project/real-estate-management-system/API/'
+};
 
-export default API_URL;
+export const API_URL = config.API_URL;
+export default config;

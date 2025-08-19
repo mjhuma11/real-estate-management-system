@@ -1,4 +1,13 @@
 <?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
 require_once 'config.php';
 
 // Enable error reporting
@@ -10,6 +19,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
     case 'POST':
+    case 'PUT':
         updateProperty();
         break;
     default:
@@ -23,14 +33,19 @@ function updateProperty() {
     
     try {
         // Get the request data
-        $requestData = json_decode(file_get_contents('php://input'), true);
+        $input = file_get_contents('php://input');
+        $requestData = json_decode($input, true);
+        
+        // Debug: Log the received data
+        error_log("Update received data: " . print_r($requestData, true));
         
         // Validate required fields
         if (!$requestData || !isset($requestData['id']) || !isset($requestData['title']) || !isset($requestData['type'])) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'error' => 'ID, title and type are required fields'
+                'error' => 'ID, title and type are required fields',
+                'received_data' => $requestData
             ]);
             return;
         }
@@ -38,9 +53,8 @@ function updateProperty() {
         $id = $requestData['id'];
         
         // Check if property exists
-        $checkStmt = $conn->prepare("SELECT id FROM properties WHERE id = :id");
-        $checkStmt->bindParam(':id', $id);
-        $checkStmt->execute();
+        $checkStmt = $conn->prepare("SELECT id FROM properties WHERE id = ?");
+        $checkStmt->execute([$id]);
         
         if ($checkStmt->rowCount() === 0) {
             http_response_code(404);
@@ -53,13 +67,12 @@ function updateProperty() {
         
         // Prepare the data
         $title = trim($requestData['title']);
+        $slug = isset($requestData['slug']) && !empty($requestData['slug']) ? $requestData['slug'] : createSlug($title);
         $description = $requestData['description'] ?? null;
         $price = $requestData['price'] ?? null;
         $monthly_rent = $requestData['monthly_rent'] ?? null;
         $type = $requestData['type']; // 'For Sale' or 'For Rent'
-        $property_type_id = $requestData['property_type_id'] ?? null;
-        $category_id = $requestData['category_id'] ?? null;
-        $location_id = $requestData['location_id'] ?? null;
+        $propertyType = $requestData['propertyType'] ?? null;
         $address = $requestData['address'] ?? null;
         $bedrooms = $requestData['bedrooms'] ?? null;
         $bathrooms = $requestData['bathrooms'] ?? null;
@@ -72,9 +85,7 @@ function updateProperty() {
         $balcony = $requestData['balcony'] ?? 0;
         $status = $requestData['status'] ?? 'available';
         $featured = $requestData['featured'] ?? 0;
-        $agent_id = $requestData['agent_id'] ?? null;
-        $virtual_tour_url = $requestData['virtual_tour_url'] ?? null;
-        $video_url = $requestData['video_url'] ?? null;
+        $created_by = $requestData['created_by'] ?? null;
         
         // Validate type
         if (!in_array($type, ['For Sale', 'For Rent'])) {
@@ -86,66 +97,58 @@ function updateProperty() {
             return;
         }
         
+        // Check if slug already exists for other properties
+        $checkSlugStmt = $conn->prepare("SELECT id FROM properties WHERE slug = ? AND id != ?");
+        $checkSlugStmt->execute([$slug, $id]);
+        
+        if ($checkSlugStmt->rowCount() > 0) {
+            // If slug exists, add a number to make it unique
+            $counter = 1;
+            $originalSlug = $slug;
+            do {
+                $slug = $originalSlug . '-' . $counter;
+                $checkSlugStmt->execute([$slug, $id]);
+                $counter++;
+            } while ($checkSlugStmt->rowCount() > 0);
+        }
+        
         // Update the property
         $sql = "UPDATE properties SET 
-                title = :title,
-                description = :description,
-                price = :price,
-                monthly_rent = :monthly_rent,
-                type = :type,
-                property_type_id = :property_type_id,
-                category_id = :category_id,
-                location_id = :location_id,
-                address = :address,
-                bedrooms = :bedrooms,
-                bathrooms = :bathrooms,
-                area = :area,
-                area_unit = :area_unit,
-                floor = :floor,
-                total_floors = :total_floors,
-                facing = :facing,
-                parking = :parking,
-                balcony = :balcony,
-                status = :status,
-                featured = :featured,
-                agent_id = :agent_id,
-                virtual_tour_url = :virtual_tour_url,
-                video_url = :video_url,
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :id";
+            title = ?, slug = ?, description = ?, price = ?, monthly_rent = ?, type = ?, 
+            property_type_id = ?, address = ?, bedrooms = ?, bathrooms = ?, area = ?, 
+            area_unit = ?, floor = ?, total_floors = ?, facing = ?, parking = ?, 
+            balcony = ?, status = ?, featured = ?, created_by = ?, updated_at = NOW()
+            WHERE id = ?";
         
         $stmt = $conn->prepare($sql);
         
-        $stmt->bindParam(':id', $id);
-        $stmt->bindParam(':title', $title);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':monthly_rent', $monthly_rent);
-        $stmt->bindParam(':type', $type);
-        $stmt->bindParam(':property_type_id', $property_type_id);
-        $stmt->bindParam(':category_id', $category_id);
-        $stmt->bindParam(':location_id', $location_id);
-        $stmt->bindParam(':address', $address);
-        $stmt->bindParam(':bedrooms', $bedrooms);
-        $stmt->bindParam(':bathrooms', $bathrooms);
-        $stmt->bindParam(':area', $area);
-        $stmt->bindParam(':area_unit', $area_unit);
-        $stmt->bindParam(':floor', $floor);
-        $stmt->bindParam(':total_floors', $total_floors);
-        $stmt->bindParam(':facing', $facing);
-        $stmt->bindParam(':parking', $parking);
-        $stmt->bindParam(':balcony', $balcony);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':featured', $featured);
-        $stmt->bindParam(':agent_id', $agent_id);
-        $stmt->bindParam(':virtual_tour_url', $virtual_tour_url);
-        $stmt->bindParam(':video_url', $video_url);
+        $result = $stmt->execute([
+            $title, $slug, $description, $price, $monthly_rent, $type,
+            $propertyType, $address, $bedrooms, $bathrooms, $area,
+            $area_unit, $floor, $total_floors, $facing, $parking,
+            $balcony, $status, $featured, $created_by, $id
+        ]);
         
-        if ($stmt->execute()) {
+        if ($result) {
+            // Handle property features if provided
+            if (isset($requestData['features']) && is_array($requestData['features'])) {
+                // Delete existing features
+                $deleteStmt = $conn->prepare("DELETE FROM property_features WHERE property_id = ?");
+                $deleteStmt->execute([$id]);
+                
+                // Insert new features
+                foreach ($requestData['features'] as $featureId) {
+                    $featureStmt = $conn->prepare("INSERT INTO property_features (property_id, feature_id) VALUES (?, ?)");
+                    $featureStmt->execute([$id, $featureId]);
+                }
+            }
+            
+            http_response_code(200);
             echo json_encode([
                 'success' => true,
                 'message' => 'Property updated successfully',
-                'property_id' => $id
+                'property_id' => $id,
+                'slug' => $slug
             ]);
         } else {
             throw new Exception('Failed to update property');
@@ -158,5 +161,24 @@ function updateProperty() {
             'error' => 'Error updating property: ' . $e->getMessage()
         ]);
     }
+}
+
+function createSlug($string) {
+    // Convert to lowercase
+    $string = strtolower($string);
+    
+    // Replace spaces with hyphens
+    $string = preg_replace('/\s+/', '-', $string);
+    
+    // Remove special characters
+    $string = preg_replace('/[^a-z0-9\-]/', '', $string);
+    
+    // Remove multiple hyphens
+    $string = preg_replace('/-+/', '-', $string);
+    
+    // Remove leading and trailing hyphens
+    $string = trim($string, '-');
+    
+    return $string;
 }
 ?>

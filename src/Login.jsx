@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import API_URL from './config';
+import { API_URL } from './config';
 import AuthContext from './contexts/AuthContext';
 
 const Login = () => {

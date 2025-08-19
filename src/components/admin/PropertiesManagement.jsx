@@ -15,11 +15,11 @@ const PropertiesManagement = () => {
     const fetchProperties = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${config.API_URL}list-properties.php`);
+            const response = await fetch(`${config.API_URL}list-properties-simple.php`);
             const data = await response.json();
             
             if (data.success) {
-                setProperties(data.properties);
+                setProperties(data.data || []);
             } else {
                 setError(data.error || 'Failed to fetch properties');
             }

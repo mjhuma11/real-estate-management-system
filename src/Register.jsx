@@ -1,7 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API_URL from './config';
-import AuthContext from './contexts/AuthContext';
+import { API_URL } from './config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +11,6 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,7 +22,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match. Please make sure both password fields are identical.');
       return;
@@ -34,7 +32,7 @@ const Register = () => {
 
     try {
       const { username, email, password } = formData;
-      
+
       const response = await fetch(`${API_URL}register.php`, {
         method: 'POST',
         headers: {
@@ -42,19 +40,43 @@ const Register = () => {
         },
         body: JSON.stringify({ username, email, password })
       });
-      
-      const data = await response.json();
-      
-      if (data.success && data.message === 'Registration successful') {
-        // Auto-login after successful registration
-        login(data.user);
-        
-        // Redirect based on user role
-        if (data.user.role === 'admin') {
-          navigate('/admin');
+
+      // Get response text first to debug
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('JSON parse error:', jsonError);
+        console.error('Response text:', responseText);
+        throw new Error('Server returned invalid JSON response');
+      }
+
+      // Handle different HTTP status codes
+      if (!response.ok) {
+        if (response.status === 409) {
+          // Email already exists
+          throw new Error(data.error || 'Email already exists. Please use a different email or try logging in.');
+        } else if (response.status === 400) {
+          // Bad request (validation errors)
+          throw new Error(data.error || 'Please check your input and try again.');
         } else {
-          navigate('/');
+          // Other errors
+          throw new Error(data.error || `Server error (${response.status}). Please try again later.`);
         }
+      }
+
+      if (data.success && data.message === 'Registration successful') {
+        // Redirect to login page with success message and user data
+        navigate('/login', {
+          state: {
+            message: 'Registration successful! Please login with your credentials.',
+            user: data.user
+          }
+        });
       } else {
         throw new Error(data.error || 'Registration failed');
       }
@@ -133,15 +155,15 @@ const Register = () => {
                   />
                 </div>
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-success w-100"
                   disabled={loading}
                 >
                   {loading ? 'Registering...' : 'Register'}
                 </button>
               </form>
-              
+
               <div className="text-center mt-3">
                 <p>Already have an account? <Link to="/login">Login here</Link></p>
               </div>

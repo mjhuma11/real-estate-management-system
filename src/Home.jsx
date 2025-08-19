@@ -166,37 +166,124 @@ const Home = () => {
                 </div>
               ))
             ) : (
-              // Fallback to original hardcoded properties if no featured properties from database
-              <div className="col-lg-4 col-md-6" data-aos="fade-right" data-aos-offset="2000" data-aos-easing="ease-in-sine">
-                <div className="card h-100 shadow-sm">
-                  <div className="position-relative">
-                    <img 
-                      src="/images/urban-building (1).jpg" 
-                      alt="Luxury Apartment" 
-                      className="img-fluid w-100" 
-                      style={{height: '250px', objectFit: 'cover'}}
-                    />
-                    <span className="badge bg-primary position-absolute top-0 start-0 m-3">For Sale</span>
-                    <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                  </div>
-                  <div className="card-body">
-                    <h5 className="card-title fw-bold">Luxury Apartment in Gulshan</h5>
-                    <p className="text-muted mb-2"><i className="fas fa-map-marker-alt me-2"></i>Gulshan, Dhaka</p>
-                    <p className="card-text">Modern 3-bedroom apartment with premium amenities and city views.</p>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h6 className="text-primary fw-bold mb-0">৳ 2,50,00,000</h6>
-                      <small className="text-muted">3 bed • 2 bath</small>
+              // Dummy properties data when no featured properties from database
+              [
+                {
+                  id: 1,
+                  title: "Luxury Apartment in Gulshan",
+                  location: "Gulshan-2, Dhaka",
+                  price: 25000000,
+                  type: "For Sale",
+                  bedrooms: 3,
+                  bathrooms: 2,
+                  area: "1800 sq ft",
+                  description: "Modern 3-bedroom apartment with premium amenities and stunning city views.",
+                  image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                },
+                {
+                  id: 2,
+                  title: "Modern Villa in Dhanmondi",
+                  location: "Dhanmondi, Dhaka",
+                  monthly_rent: 80000,
+                  type: "For Rent",
+                  bedrooms: 4,
+                  bathrooms: 3,
+                  area: "2500 sq ft",
+                  description: "Spacious villa with garden, perfect for families seeking comfort and luxury.",
+                  image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                },
+                {
+                  id: 3,
+                  title: "Commercial Space in Banani",
+                  location: "Banani, Dhaka",
+                  price: 35000000,
+                  type: "For Sale",
+                  bedrooms: null,
+                  bathrooms: 2,
+                  area: "3000 sq ft",
+                  description: "Prime commercial space in the heart of Banani business district.",
+                  image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                },
+                {
+                  id: 4,
+                  title: "Penthouse in Uttara",
+                  location: "Uttara, Dhaka",
+                  price: 45000000,
+                  type: "For Sale",
+                  bedrooms: 5,
+                  bathrooms: 4,
+                  area: "4000 sq ft",
+                  description: "Exclusive penthouse with panoramic city views and luxury finishes.",
+                  image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                },
+                {
+                  id: 5,
+                  title: "Family House in Mirpur",
+                  location: "Mirpur DOHS, Dhaka",
+                  monthly_rent: 60000,
+                  type: "For Rent",
+                  bedrooms: 3,
+                  bathrooms: 2,
+                  area: "2200 sq ft",
+                  description: "Comfortable family house in a quiet residential area with modern amenities.",
+                  image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                },
+                {
+                  id: 6,
+                  title: "Studio Apartment in Bashundhara",
+                  location: "Bashundhara R/A, Dhaka",
+                  monthly_rent: 25000,
+                  type: "For Rent",
+                  bedrooms: 1,
+                  bathrooms: 1,
+                  area: "800 sq ft",
+                  description: "Cozy studio apartment perfect for young professionals and students.",
+                  image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+                }
+              ].map((property, index) => (
+                <div key={property.id} className={`col-lg-4 col-md-6 ${index === 0 ? 'data-aos="fade-right"' : index === 1 ? 'data-aos="fade-up"' : 'data-aos="fade-left"'}`} data-aos-offset="300" data-aos-easing="ease-in-sine">
+                  <div className="card h-100 shadow-sm">
+                    <div className="position-relative">
+                      <img 
+                        src={property.image} 
+                        alt={property.title} 
+                        className="img-fluid w-100" 
+                        style={{height: '250px', objectFit: 'cover'}}
+                      />
+                      <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
+                        {property.type}
+                      </span>
+                      <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
+                    </div>
+                    <div className="card-body">
+                      <h5 className="card-title fw-bold">{property.title}</h5>
+                      <p className="text-muted mb-2">
+                        <i className="fas fa-map-marker-alt me-2"></i>
+                        {property.location}
+                      </p>
+                      <p className="card-text">{property.description}</p>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h6 className="text-primary fw-bold mb-0">
+                          {property.type === 'For Sale' 
+                            ? `৳ ${new Intl.NumberFormat('en-IN').format(property.price)}`
+                            : `৳ ${new Intl.NumberFormat('en-IN').format(property.monthly_rent)}/month`
+                          }
+                        </h6>
+                        <small className="text-muted">
+                          {property.bedrooms ? `${property.bedrooms} bed` : 'Commercial'} 
+                          {property.bedrooms && property.bathrooms ? ' • ' : property.bathrooms ? '' : ''}
+                          {property.bathrooms ? `${property.bathrooms} bath` : ''}
+                        </small>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-
+              ))
             )}
           </div>
 
           <div className="text-center mt-5">
             <Link to="/Properties" className="btn btn-primary btn-lg px-5">View All Properties</Link>
-           
           </div>
         </div>
       </section>

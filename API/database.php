@@ -16,7 +16,7 @@ define("DB_USER", "root");
 define("DB_PASS", "");
 define("DB_NAME", "netro-estate");
 // ====== API Base URL ======
-define("API_URL", "http://localhost/WDPF/React-project/react-php-mysql-based-ecommerce/API/");
+define("API_URL", "http://localhost/WDPF/React-project/real-estate-management-system/API/");
 
 // ====== MySQLi Connection ======
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);

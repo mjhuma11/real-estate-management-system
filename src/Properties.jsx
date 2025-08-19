@@ -1,6 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from "react-router-dom";
-import { propertiesAPI, locationsAPI, propertyTypesAPI } from './services/api';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+// Using direct API calls to avoid import issues
+import PropertyCard from './components/PropertyCard';
+import PropertySearch from './components/PropertySearch';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import { useToast } from './components/common/Toast';
 
 
 const Properties = () => {
@@ -31,10 +35,16 @@ const Properties = () => {
 
   const fetchInitialData = async () => {
     try {
-      const [locationsData, propertyTypesData] = await Promise.all([
-        locationsAPI.getByType('area'),
-        propertyTypesAPI.getAll()
+      // Direct API calls to avoid import issues
+      const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      
+      const [locationsResponse, propertyTypesResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/locations-simple.php?type=area`),
+        fetch(`${API_BASE_URL}/property-types-simple.php`)
       ]);
+
+      const locationsData = await locationsResponse.json();
+      const propertyTypesData = await propertyTypesResponse.json();
 
       setLocations(locationsData.data || []);
       setPropertyTypes(propertyTypesData.data || []);
@@ -70,9 +80,24 @@ const Properties = () => {
         }
       }
 
-      const response = await propertiesAPI.getAll(apiFilters);
+      // Direct API call to avoid import issues
+      const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      const queryParams = new URLSearchParams();
+      
+      Object.keys(apiFilters).forEach(key => {
+        if (apiFilters[key] !== '' && apiFilters[key] !== null && apiFilters[key] !== undefined) {
+          queryParams.append(key, apiFilters[key]);
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const apiResponse = await fetch(`${API_BASE_URL}/list-properties-simple.php${queryString ? `?${queryString}` : ''}`);
+      const response = await apiResponse.json();
+      
       setProperties(response.data || []);
-      setPagination(response.pagination || {});
+      setPagination({
+        total_items: response.pagination?.total_items || 0
+      });
       setError(null);
     } catch (err) {
       console.error('Error fetching properties:', err);
@@ -370,6 +395,9 @@ const Properties = () => {
                         alt={property.title}
                         className="img-fluid w-100"
                         style={{ height: '250px', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
+                        }}
                       />
                       <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
                         {property.type}

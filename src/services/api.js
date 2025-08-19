@@ -1,5 +1,5 @@
 // API Base URL - Update this to match your local server
-const API_BASE_URL = 'http://localhost/real-estate-management-system/API';
+const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
 
 // Generic API call function
 const apiCall = async (endpoint, options = {}) => {
@@ -38,7 +38,7 @@ export const propertiesAPI = {
     });
 
     const queryString = queryParams.toString();
-    return apiCall(`properties.php${queryString ? `?${queryString}` : ''}`);
+    return apiCall(`list-properties-simple.php${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get property by ID
@@ -120,12 +120,12 @@ export const projectsAPI = {
 export const locationsAPI = {
   // Get all locations
   getAll: () => {
-    return apiCall('locations.php');
+    return apiCall('locations-simple.php');
   },
 
   // Get locations by type
   getByType: (type) => {
-    return apiCall(`locations.php?type=${type}`);
+    return apiCall(`locations-simple.php?type=${type}`);
   },
 };
 
@@ -133,7 +133,7 @@ export const locationsAPI = {
 export const propertyTypesAPI = {
   // Get all property types
   getAll: () => {
-    return apiCall('property-types.php');
+    return apiCall('property-types-simple.php');
   },
 };
 

@@ -1,4 +1,13 @@
 <?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
 require_once 'config.php';
 
 // Enable error reporting
@@ -45,14 +54,12 @@ function addProperty() {
         
         // Prepare the data
         $title = trim($requestData['title']);
-        $slug = createSlug($title);
+        $slug = isset($requestData['slug']) && !empty($requestData['slug']) ? $requestData['slug'] : createSlug($title);
         $description = $requestData['description'] ?? null;
         $price = $requestData['price'] ?? null;
         $monthly_rent = $requestData['monthly_rent'] ?? null;
         $type = $requestData['type']; // 'For Sale' or 'For Rent'
-        $property_type_id = $requestData['property_type_id'] ?? null;
-        $category_id = $requestData['category_id'] ?? null;
-        $location_id = $requestData['location_id'] ?? null;
+        $propertyType = $requestData['propertyType'] ?? null;
         $address = $requestData['address'] ?? null;
         $bedrooms = $requestData['bedrooms'] ?? null;
         $bathrooms = $requestData['bathrooms'] ?? null;
@@ -65,9 +72,6 @@ function addProperty() {
         $balcony = $requestData['balcony'] ?? 0;
         $status = $requestData['status'] ?? 'available';
         $featured = $requestData['featured'] ?? 0;
-        $agent_id = $requestData['agent_id'] ?? null;
-        $virtual_tour_url = $requestData['virtual_tour_url'] ?? null;
-        $video_url = $requestData['video_url'] ?? null;
         $created_by = $requestData['created_by'] ?? null;
         
         // Validate type
@@ -97,17 +101,15 @@ function addProperty() {
             } while ($checkStmt->rowCount() > 0);
         }
         
-        // Insert the property
+        // Insert the property (updated to match database schema, removed agent_id)
         $sql = "INSERT INTO properties (
-            title, slug, description, price, monthly_rent, type, property_type_id,
-            category_id, location_id, address, bedrooms, bathrooms, area, area_unit,
-            floor, total_floors, facing, parking, balcony, status, featured,
-            agent_id, virtual_tour_url, video_url, created_by
+            title, slug, description, price, monthly_rent, type, property_type,
+            address, bedrooms, bathrooms, area, area_unit,
+            floor, total_floors, facing, parking, balcony, status, featured, created_by
         ) VALUES (
-            :title, :slug, :description, :price, :monthly_rent, :type, :property_type_id,
-            :category_id, :location_id, :address, :bedrooms, :bathrooms, :area, :area_unit,
-            :floor, :total_floors, :facing, :parking, :balcony, :status, :featured,
-            :agent_id, :virtual_tour_url, :video_url, :created_by
+            :title, :slug, :description, :price, :monthly_rent, :type, :property_type,
+            :address, :bedrooms, :bathrooms, :area, :area_unit,
+            :floor, :total_floors, :facing, :parking, :balcony, :status, :featured, :created_by
         )";
         
         $stmt = $conn->prepare($sql);
@@ -118,9 +120,7 @@ function addProperty() {
         $stmt->bindParam(':price', $price);
         $stmt->bindParam(':monthly_rent', $monthly_rent);
         $stmt->bindParam(':type', $type);
-        $stmt->bindParam(':property_type_id', $property_type_id);
-        $stmt->bindParam(':category_id', $category_id);
-        $stmt->bindParam(':location_id', $location_id);
+        $stmt->bindParam(':property_type', $propertyType); // Using propertyType as text
         $stmt->bindParam(':address', $address);
         $stmt->bindParam(':bedrooms', $bedrooms);
         $stmt->bindParam(':bathrooms', $bathrooms);
@@ -133,9 +133,6 @@ function addProperty() {
         $stmt->bindParam(':balcony', $balcony);
         $stmt->bindParam(':status', $status);
         $stmt->bindParam(':featured', $featured);
-        $stmt->bindParam(':agent_id', $agent_id);
-        $stmt->bindParam(':virtual_tour_url', $virtual_tour_url);
-        $stmt->bindParam(':video_url', $video_url);
         $stmt->bindParam(':created_by', $created_by);
         
         if ($stmt->execute()) {
@@ -171,6 +168,7 @@ function addProperty() {
 
 function getPropertyForm() {
     global $conn;
+    header('Content-Type: application/json');
     
     try {
         // Get categories
