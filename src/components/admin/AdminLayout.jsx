@@ -39,6 +39,16 @@ const AdminLayout = () => {
               <span className="badge bg-danger rounded-pill ms-2">3</span>
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/admin/locations" className="nav-link text-white">
+              <i className="fas fa-map-marker-alt me-2"></i>Locations
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/property-types" className="nav-link text-white">
+              <i className="fas fa-tags me-2"></i>Property Types
+            </Link>
+          </li>
           <li className="nav-item mt-4">
             <Link to="/" className="nav-link text-white">
               <i className="fas fa-arrow-left me-2"></i>Back to Site

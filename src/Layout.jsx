@@ -1,9 +1,11 @@
 import { Outlet, Link } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "./contexts/AuthContext";
+import { useFavourites } from "./contexts/FavouritesContext";
 
 const Layout = () => {
     const { user, isAuthenticated, logout, isAdmin } = useContext(AuthContext);
+    const { getFavouritesCount } = useFavourites();
     
     const handleLogout = () => {
         logout();
@@ -70,6 +72,25 @@ const Layout = () => {
                             </li>
                             <li className="nav-item">
                                 <Link className="nav-link fw-semibold" to="/contact">Contact</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link fw-semibold position-relative d-flex align-items-center justify-content-center" to="/favourites" style={{width: '50px', height: '50px'}}>
+                                    <i className="fas fa-heart position-relative" style={{fontSize: '2rem', color: '#dc3545'}}>
+                                        {getFavouritesCount() > 0 && (
+                                            <span className="position-absolute top-50 start-50 translate-middle text-white fw-bold" style={{fontSize: '0.8rem', textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                                                {getFavouritesCount()}
+                                            </span>
+                                        )}
+                                    </i>
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link fw-semibold position-relative" to="/cart">
+                                    <i className="fas fa-shopping-cart me-1"></i>Cart
+                                    <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
+                                        0
+                                    </span>
+                                </Link>
                             </li>
                             {isAuthenticated() ? (
                                 <>

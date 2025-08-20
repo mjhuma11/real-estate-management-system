@@ -1,5 +1,30 @@
 <?php
-require_once 'config.php';
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+
+// Set JSON header first
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    require_once 'config.php';
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Config error: ' . $e->getMessage()
+    ]);
+    exit;
+}
 
 // Check if uploads directory exists, create if not
 if (!file_exists(UPLOAD_DIR)) {
@@ -63,26 +88,8 @@ try {
         $thumbnailPath = createThumbnail($uploadPath, $uploadType, $filename);
     }
     
-    // If this is for a property, save to database
-    if ($uploadType === 'properties' && $propertyId) {
-        $stmt = $conn->prepare("INSERT INTO property_images (property_id, image_url, thumbnail_url, filename, file_size, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
-        
-        // Get next sort order
-        $sortStmt = $conn->prepare("SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM property_images WHERE property_id = ?");
-        $sortStmt->execute([$propertyId]);
-        $sortOrder = $sortStmt->fetch()['next_order'];
-        
-        $stmt->execute([
-            $propertyId,
-            $relativePath,
-            $thumbnailPath,
-            $filename,
-            $file['size'],
-            $sortOrder
-        ]);
-        
-        $imageId = $conn->lastInsertId();
-    }
+    // Store image info for response
+    $imageId = null;
     
     echo json_encode([
         'success' => true,
@@ -102,21 +109,40 @@ try {
     ]);
     
 } catch (Exception $e) {
-    logError('Image upload error', [
-        'error' => $e->getMessage(),
-        'file_info' => $_FILES['image'] ?? null,
-        'post_data' => $_POST
-    ]);
+    error_log('Image upload error: ' . $e->getMessage());
     
     http_response_code(400);
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()
     ]);
+} catch (Throwable $e) {
+    // Catch any other errors that might occur
+    error_log('Image upload fatal error: ' . $e->getMessage());
+    
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Fatal error: ' . $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
 }
 
 function createThumbnail($sourcePath, $uploadType, $filename) {
     try {
+        // Check if GD extension is loaded
+        if (!extension_loaded('gd')) {
+            error_log('GD extension not loaded - skipping thumbnail creation');
+            return null;
+        }
+        
+        // Check if required GD functions exist
+        if (!function_exists('imagecreatefromjpeg') || !function_exists('imagecreatetruecolor')) {
+            error_log('Required GD functions not available - skipping thumbnail creation');
+            return null;
+        }
+        
         $thumbnailDir = UPLOAD_DIR . $uploadType . '/thumbnails/';
         if (!file_exists($thumbnailDir)) {
             mkdir($thumbnailDir, 0755, true);
@@ -127,6 +153,11 @@ function createThumbnail($sourcePath, $uploadType, $filename) {
         
         // Get image info
         $imageInfo = getimagesize($sourcePath);
+        if ($imageInfo === false) {
+            error_log('Could not get image info for: ' . $sourcePath);
+            return null;
+        }
+        
         $sourceWidth = $imageInfo[0];
         $sourceHeight = $imageInfo[1];
         $mimeType = $imageInfo['mime'];
@@ -142,22 +173,40 @@ function createThumbnail($sourcePath, $uploadType, $filename) {
         }
         
         // Create source image resource
+        $sourceImage = null;
         switch ($mimeType) {
             case 'image/jpeg':
-                $sourceImage = imagecreatefromjpeg($sourcePath);
+                if (function_exists('imagecreatefromjpeg')) {
+                    $sourceImage = imagecreatefromjpeg($sourcePath);
+                }
                 break;
             case 'image/png':
-                $sourceImage = imagecreatefrompng($sourcePath);
+                if (function_exists('imagecreatefrompng')) {
+                    $sourceImage = imagecreatefrompng($sourcePath);
+                }
                 break;
             case 'image/gif':
-                $sourceImage = imagecreatefromgif($sourcePath);
+                if (function_exists('imagecreatefromgif')) {
+                    $sourceImage = imagecreatefromgif($sourcePath);
+                }
                 break;
             default:
+                error_log('Unsupported image type: ' . $mimeType);
                 return null;
+        }
+        
+        if ($sourceImage === null || $sourceImage === false) {
+            error_log('Failed to create source image from: ' . $sourcePath);
+            return null;
         }
         
         // Create thumbnail image
         $thumbnailImage = imagecreatetruecolor($thumbWidth, $thumbHeight);
+        if ($thumbnailImage === false) {
+            imagedestroy($sourceImage);
+            error_log('Failed to create thumbnail canvas');
+            return null;
+        }
         
         // Preserve transparency for PNG and GIF
         if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
@@ -168,18 +217,31 @@ function createThumbnail($sourcePath, $uploadType, $filename) {
         }
         
         // Resize image
-        imagecopyresampled($thumbnailImage, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $sourceWidth, $sourceHeight);
+        $resizeResult = imagecopyresampled($thumbnailImage, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $sourceWidth, $sourceHeight);
+        if (!$resizeResult) {
+            imagedestroy($sourceImage);
+            imagedestroy($thumbnailImage);
+            error_log('Failed to resize image');
+            return null;
+        }
         
         // Save thumbnail
+        $saveResult = false;
         switch ($mimeType) {
             case 'image/jpeg':
-                imagejpeg($thumbnailImage, $thumbnailPath, 85);
+                if (function_exists('imagejpeg')) {
+                    $saveResult = imagejpeg($thumbnailImage, $thumbnailPath, 85);
+                }
                 break;
             case 'image/png':
-                imagepng($thumbnailImage, $thumbnailPath, 8);
+                if (function_exists('imagepng')) {
+                    $saveResult = imagepng($thumbnailImage, $thumbnailPath, 8);
+                }
                 break;
             case 'image/gif':
-                imagegif($thumbnailImage, $thumbnailPath);
+                if (function_exists('imagegif')) {
+                    $saveResult = imagegif($thumbnailImage, $thumbnailPath);
+                }
                 break;
         }
         
@@ -187,10 +249,15 @@ function createThumbnail($sourcePath, $uploadType, $filename) {
         imagedestroy($sourceImage);
         imagedestroy($thumbnailImage);
         
+        if (!$saveResult) {
+            error_log('Failed to save thumbnail: ' . $thumbnailPath);
+            return null;
+        }
+        
         return $thumbnailRelativePath;
         
     } catch (Exception $e) {
-        logError('Thumbnail creation error', ['error' => $e->getMessage(), 'source' => $sourcePath]);
+        error_log('Thumbnail creation error: ' . $e->getMessage() . ' - Source: ' . $sourcePath);
         return null;
     }
 }

@@ -1,9 +1,26 @@
 <?php
-require_once 'config.php';
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+// Database connection
+$host = 'localhost';
+$dbname = 'netro-estate';
+$username = 'root';
+$password = '';
+
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    exit();
+}
 
 // Handle different HTTP methods
 $method = $_SERVER['REQUEST_METHOD'];
@@ -57,20 +74,22 @@ function deleteProperty() {
         $conn->beginTransaction();
         
         try {
-            // Delete property features first
-            $featureStmt = $conn->prepare("DELETE FROM property_features WHERE property_id = :property_id");
-            $featureStmt->bindParam(':property_id', $id);
-            $featureStmt->execute();
+            // Delete related records first (if they exist)
+            try {
+                $amenityStmt = $conn->prepare("DELETE FROM property_amenities WHERE property_id = :property_id");
+                $amenityStmt->bindParam(':property_id', $id);
+                $amenityStmt->execute();
+            } catch (Exception $e) {
+                // Table might not exist, continue
+            }
             
-            // Delete property views
-            $viewStmt = $conn->prepare("DELETE FROM property_views WHERE property_id = :property_id");
-            $viewStmt->bindParam(':property_id', $id);
-            $viewStmt->execute();
-            
-            // Delete user favorites
-            $favoriteStmt = $conn->prepare("DELETE FROM user_favorites WHERE property_id = :property_id");
-            $favoriteStmt->bindParam(':property_id', $id);
-            $favoriteStmt->execute();
+            try {
+                $imageStmt = $conn->prepare("DELETE FROM property_images WHERE property_id = :property_id");
+                $imageStmt->bindParam(':property_id', $id);
+                $imageStmt->execute();
+            } catch (Exception $e) {
+                // Table might not exist, continue
+            }
             
             // Delete the property
             $deleteStmt = $conn->prepare("DELETE FROM properties WHERE id = :id");

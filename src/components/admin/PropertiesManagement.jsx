@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import config from '../../config';
+import config from '../../data/database.js';
 
 const PropertiesManagement = () => {
     const [properties, setProperties] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [deleteModal, setDeleteModal] = useState({ show: false, property: null });
+    const [viewModal, setViewModal] = useState({ show: false, property: null });
 
     useEffect(() => {
         fetchProperties();
@@ -209,14 +210,13 @@ const PropertiesManagement = () => {
                                                     >
                                                         <i className="fas fa-edit"></i>
                                                     </Link>
-                                                    <Link 
-                                                        to={`/property/${property.slug}`}
+                                                    <button
                                                         className="btn btn-sm btn-outline-info"
-                                                        title="View"
-                                                        target="_blank"
+                                                        onClick={() => setViewModal({ show: true, property })}
+                                                        title="View Details"
                                                     >
                                                         <i className="fas fa-eye"></i>
-                                                    </Link>
+                                                    </button>
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"
                                                         onClick={() => setDeleteModal({ show: true, property })}
@@ -234,6 +234,102 @@ const PropertiesManagement = () => {
                     )}
                 </div>
             </div>
+
+            {/* View Property Modal */}
+            {viewModal.show && (
+                <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+                    <div className="modal-dialog modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Property Details</h5>
+                                <button 
+                                    type="button" 
+                                    className="btn-close" 
+                                    onClick={() => setViewModal({ show: false, property: null })}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                {viewModal.property && (
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <h6 className="fw-bold">Basic Information</h6>
+                                            <table className="table table-sm">
+                                                <tbody>
+                                                    <tr><td><strong>Title:</strong></td><td>{viewModal.property.title}</td></tr>
+                                                    <tr><td><strong>Type:</strong></td><td><span className={`badge ${viewModal.property.type === 'For Sale' ? 'bg-success' : 'bg-info'}`}>{viewModal.property.type}</span></td></tr>
+                                                    <tr><td><strong>Property Type:</strong></td><td>{viewModal.property.property_type || 'N/A'}</td></tr>
+                                                    <tr><td><strong>Status:</strong></td><td><span className={`badge ${
+                                                        viewModal.property.status === 'available' ? 'bg-success' :
+                                                        viewModal.property.status === 'pending' ? 'bg-warning' :
+                                                        viewModal.property.status === 'sold' ? 'bg-danger' :
+                                                        'bg-secondary'
+                                                    }`}>{viewModal.property.status}</span></td></tr>
+                                                    <tr><td><strong>Featured:</strong></td><td>{viewModal.property.featured ? '⭐ Yes' : 'No'}</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="col-md-6">
+                                            <h6 className="fw-bold">Property Details</h6>
+                                            <table className="table table-sm">
+                                                <tbody>
+                                                    <tr><td><strong>Price:</strong></td><td>{viewModal.property.type === 'For Sale' ? formatPrice(viewModal.property.price) : formatPrice(viewModal.property.monthly_rent) + '/month'}</td></tr>
+                                                    <tr><td><strong>Bedrooms:</strong></td><td>{viewModal.property.bedrooms || 'N/A'}</td></tr>
+                                                    <tr><td><strong>Bathrooms:</strong></td><td>{viewModal.property.bathrooms || 'N/A'}</td></tr>
+                                                    <tr><td><strong>Area:</strong></td><td>{viewModal.property.area ? `${viewModal.property.area} ${viewModal.property.area_unit}` : 'N/A'}</td></tr>
+                                                    <tr><td><strong>Floor:</strong></td><td>{viewModal.property.floor ? `${viewModal.property.floor}${viewModal.property.total_floors ? ` of ${viewModal.property.total_floors}` : ''}` : 'N/A'}</td></tr>
+                                                    <tr><td><strong>Facing:</strong></td><td>{viewModal.property.facing || 'N/A'}</td></tr>
+                                                    <tr><td><strong>Parking:</strong></td><td>{viewModal.property.parking || 0} spaces</td></tr>
+                                                    <tr><td><strong>Balcony:</strong></td><td>{viewModal.property.balcony || 0}</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="col-12">
+                                            <h6 className="fw-bold">Location & Description</h6>
+                                            <p><strong>Address:</strong> {viewModal.property.address || 'N/A'}</p>
+                                            {viewModal.property.description && (
+                                                <div>
+                                                    <strong>Description:</strong>
+                                                    <p className="mt-2">{viewModal.property.description}</p>
+                                                </div>
+                                            )}
+                                            {viewModal.property.image && (
+                                                <div>
+                                                    <strong>Property Image:</strong>
+                                                    <div className="mt-2">
+                                                        <img 
+                                                            src={viewModal.property.images?.[0] || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                                                            alt={viewModal.property.title}
+                                                            className="img-fluid rounded"
+                                                            style={{ maxHeight: '200px', objectFit: 'cover' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <Link 
+                                    to={`/admin/properties/edit/${viewModal.property?.id}`}
+                                    className="btn btn-primary"
+                                    onClick={() => setViewModal({ show: false, property: null })}
+                                >
+                                    <i className="fas fa-edit me-2"></i>Edit Property
+                                </Link>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary" 
+                                    onClick={() => setViewModal({ show: false, property: null })}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-backdrop fade show"></div>
+                </div>
+            )}
 
             {/* Delete Confirmation Modal */}
             {deleteModal.show && (

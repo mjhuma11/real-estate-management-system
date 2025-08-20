@@ -7,12 +7,16 @@ import Services from "./Services";
 import Projects from "./Projects";
 import ProjectDetail from "./ProjectDetail";
 import PropertyDetails from "./PropertyDetails";
+import Appointment from "./Appointment";
+import Favourites from "./Favourites";
 import Contact from "./Contact";
 import NoPage from "./NoPage";
 import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider } from './contexts/AuthContext';
+import { FavouritesProvider } from './contexts/FavouritesContext';
+import { ToastProvider } from './components/common/Toast';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -23,27 +27,33 @@ import PropertiesManagement from "./components/admin/PropertiesManagement";
 import PropertyForm from "./components/admin/PropertyForm";
 import ProjectsManagement from "./components/admin/ProjectsManagement";
 import Users from "./components/admin/Users";
+import LocationManagement from "./components/admin/LocationManagement";
+import PropertyTypeManagement from "./components/admin/PropertyTypeManagement";
 
 const App = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Main App Routes */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="about" element={<About />} />
-            <Route path="properties" element={<Properties />} />
-            <Route path="services" element={<Services />} />
-            <Route path="projects" element={<Projects />} />
-            <Route path="projects/completed" element={<Projects type="completed" />} />
-            <Route path="projects/ongoing" element={<Projects type="ongoing" />} />
-            <Route path="projects/upcoming" element={<Projects type="upcoming" />} />
-            <Route path="project/:id" element={<ProjectDetail />} />
-            <Route path="property/:id" element={<PropertyDetails />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
+    <ToastProvider>
+      <AuthProvider>
+        <FavouritesProvider>
+          <BrowserRouter>
+            <Routes>
+            {/* Main App Routes */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="about" element={<About />} />
+              <Route path="properties" element={<Properties />} />
+              <Route path="services" element={<Services />} />
+              <Route path="projects" element={<Projects />} />
+              <Route path="projects/completed" element={<Projects type="completed" />} />
+              <Route path="projects/ongoing" element={<Projects type="ongoing" />} />
+              <Route path="projects/upcoming" element={<Projects type="upcoming" />} />
+              <Route path="project/:id" element={<ProjectDetail />} />
+              <Route path="property/:id" element={<PropertyDetails />} />
+              <Route path="appointment" element={<Appointment />} />
+              <Route path="favourites" element={<Favourites />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
 
             {/* Admin Routes */}
             <Route path="admin" element={
@@ -59,14 +69,18 @@ const App = () => {
               <Route path="projects/add" element={<PropertyForm />} />
               <Route path="projects/edit/:id" element={<PropertyForm />} />
               <Route path="users" element={<Users />} />
+              <Route path="locations" element={<LocationManagement />} />
+              <Route path="property-types" element={<PropertyTypeManagement />} />
               {/* Add more admin routes here as needed */}
             </Route>
 
-            <Route path="*" element={<NoPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+              <Route path="*" element={<NoPage />} />
+            </Route>
+          </Routes>
+          </BrowserRouter>
+        </FavouritesProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

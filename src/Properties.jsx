@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// Using direct API calls to avoid import issues
+import { useFavourites } from './contexts/FavouritesContext';
+import './styles/favourites.css';
 import PropertyCard from './components/PropertyCard';
 import PropertySearch from './components/PropertySearch';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -8,6 +9,8 @@ import { useToast } from './components/common/Toast';
 
 
 const Properties = () => {
+  const { toggleFavourite, isFavourite } = useFavourites();
+  
   const [filters, setFilters] = useState({
     propertyType: '',
     location: '',
@@ -39,8 +42,8 @@ const Properties = () => {
       const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
       
       const [locationsResponse, propertyTypesResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/locations-simple.php?type=area`),
-        fetch(`${API_BASE_URL}/property-types-simple.php`)
+        fetch(`${API_BASE_URL}/locations.php?type=area`),
+        fetch(`${API_BASE_URL}/property-types.php`)
       ]);
 
       const locationsData = await locationsResponse.json();
@@ -213,6 +216,7 @@ const Properties = () => {
       saleType: ''
     });
   };
+
 
   return (
     <div>
@@ -406,8 +410,12 @@ const Properties = () => {
                         <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
                       )}
                       <div className="position-absolute bottom-0 end-0 m-3">
-                        <button className="btn btn-light btn-sm rounded-circle me-2">
-                          <i className="fas fa-heart"></i>
+                        <button 
+                          className={`btn btn-sm rounded-circle me-2 favourite-btn ${isFavourite(property.id) ? 'btn-danger text-white favourited' : 'btn-light'}`}
+                          onClick={() => toggleFavourite(property)}
+                          title={isFavourite(property.id) ? 'Remove from favourites' : 'Add to favourites'}
+                        >
+                          <i className={`fas fa-heart ${isFavourite(property.id) ? 'text-white' : 'text-muted'}`}></i>
                         </button>
                         <button className="btn btn-light btn-sm rounded-circle">
                           <i className="fas fa-share-alt"></i>
@@ -438,15 +446,24 @@ const Properties = () => {
                           </small>
                         </div>
                       </div>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="text-primary fw-bold mb-0">
-                          {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
-                        </h6>
+                      <h6 className="text-primary fw-bold mb-3">
+                        {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
+                      </h6>
+                      <div className="d-grid gap-2">
                         <Link
                           to={`/property/${property.id}`}
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-sm"
+                          style={{ backgroundColor: '#adff2f', borderColor: '#adff2f', color: '#000' }}
                         >
                           View Details
+                        </Link>
+                        <Link
+                          to={`/appointment?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`}
+                          className="btn btn-sm"
+                          style={{ backgroundColor: '#adff2f', borderColor: '#adff2f', color: '#000' }}
+                        >
+                          <i className="fas fa-calendar-check me-1"></i>
+                          Book Now
                         </Link>
                       </div>
                     </div>

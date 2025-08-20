@@ -1,8 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useFavourites } from './contexts/FavouritesContext';
+import './styles/favourites.css';
 
 const PropertyDetails = () => {
   const { id } = useParams();
+  const { toggleFavourite, isFavourite } = useFavourites();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [similarProperties, setSimilarProperties] = useState([]);
@@ -358,7 +361,16 @@ const PropertyDetails = () => {
 
               <div className="card mb-4 shadow-sm">
                 <div className="card-body">
-                  <h2 className="fw-bold mb-3">{property.title}</h2>
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <h2 className="fw-bold mb-0">{property.title}</h2>
+                    <button 
+                      className={`btn btn-lg rounded-circle favourite-btn ${isFavourite(property.id) ? 'btn-danger text-white favourited' : 'btn-outline-danger'}`}
+                      onClick={() => toggleFavourite(property)}
+                      title={isFavourite(property.id) ? 'Remove from favourites' : 'Add to favourites'}
+                    >
+                      <i className={`fas fa-heart ${isFavourite(property.id) ? 'text-white' : ''}`}></i>
+                    </button>
+                  </div>
                   <p className="text-muted mb-4">
                     <i className="fas fa-map-marker-alt me-2"></i>{property.location}
                   </p>

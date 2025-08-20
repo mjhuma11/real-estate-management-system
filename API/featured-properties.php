@@ -27,14 +27,16 @@ try {
                 p.price,
                 p.monthly_rent,
                 p.type,
+                p.property_type_id,
                 p.bedrooms,
                 p.bathrooms,
                 p.area,
                 p.area_unit,
                 p.address,
                 p.created_at,
-                COALESCE(p.property_type_id, p.property_type, 'Apartment') as property_type
+                pt.name as property_type
             FROM properties p
+            LEFT JOIN property_types pt ON p.property_type_id = pt.id
             WHERE p.featured = 1 AND p.status = 'available'
             ORDER BY p.created_at DESC
             LIMIT 6";

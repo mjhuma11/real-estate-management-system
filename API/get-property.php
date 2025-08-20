@@ -1,9 +1,26 @@
 <?php
-require_once 'config.php';
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+// Database connection
+$host = 'localhost';
+$dbname = 'netro-estate';
+$username = 'root';
+$password = '';
+
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    exit();
+}
 
 // Handle different HTTP methods
 $method = $_SERVER['REQUEST_METHOD'];
@@ -37,13 +54,11 @@ function getProperty() {
         // Get property with related data
         $sql = "SELECT 
                     p.*,
-                    c.name as category_name,
-                    l.name as location_name,
+                    pt.name as property_type_name,
                     u.username as agent_name,
                     u.email as agent_email
                 FROM properties p
-                LEFT JOIN categories c ON p.category_id = c.id
-                LEFT JOIN locations l ON p.location_id = l.id
+                LEFT JOIN property_types pt ON p.property_type_id = pt.id
                 LEFT JOIN users u ON p.agent_id = u.id
                 WHERE p.id = :id";
         
@@ -62,18 +77,23 @@ function getProperty() {
         
         $property = $stmt->fetch();
         
-        // Get property features
-        $featureSql = "SELECT f.id, f.name, f.icon
-                       FROM property_features pf
-                       JOIN features f ON pf.feature_id = f.id
-                       WHERE pf.property_id = :property_id";
-        
-        $featureStmt = $conn->prepare($featureSql);
-        $featureStmt->bindParam(':property_id', $id);
-        $featureStmt->execute();
-        $features = $featureStmt->fetchAll();
-        
-        $property['features'] = $features;
+        // Get property amenities (if amenities table exists)
+        try {
+            $amenitySql = "SELECT a.id, a.name
+                           FROM property_amenities pa
+                           JOIN amenities a ON pa.amenity_id = a.id
+                           WHERE pa.property_id = :property_id";
+            
+            $amenityStmt = $conn->prepare($amenitySql);
+            $amenityStmt->bindParam(':property_id', $id);
+            $amenityStmt->execute();
+            $amenities = $amenityStmt->fetchAll();
+            
+            $property['amenities'] = $amenities;
+        } catch (Exception $e) {
+            // If amenities table doesn't exist, set empty array
+            $property['amenities'] = [];
+        }
         
         echo json_encode([
             'success' => true,

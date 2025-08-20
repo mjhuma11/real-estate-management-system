@@ -684,3 +684,10 @@ export const searchProperties = (query) => {
     property.propertyType.toLowerCase().includes(searchTerm)
   );
 };
+
+// Default export for config
+const config = {
+  API_URL: 'http://localhost/WDPF/React-project/real-estate-management-system/API/'
+};
+
+export default config;

@@ -29,6 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+// Upload configuration
+define('UPLOAD_DIR', __DIR__ . '/../uploads/');
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+// Helper function for logging errors
+function logError($message, $data = []) {
+    error_log($message . ' - ' . json_encode($data));
+}
+
 // Set response content type
 header("Content-Type: application/json");
 ?>

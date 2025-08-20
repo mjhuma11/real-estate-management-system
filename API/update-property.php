@@ -112,12 +112,15 @@ function updateProperty() {
             } while ($checkSlugStmt->rowCount() > 0);
         }
         
+        // Handle image update
+        $image = $requestData['image'] ?? null;
+        
         // Update the property
         $sql = "UPDATE properties SET 
             title = ?, slug = ?, description = ?, price = ?, monthly_rent = ?, type = ?, 
             property_type_id = ?, address = ?, bedrooms = ?, bathrooms = ?, area = ?, 
             area_unit = ?, floor = ?, total_floors = ?, facing = ?, parking = ?, 
-            balcony = ?, status = ?, featured = ?, created_by = ?, updated_at = NOW()
+            balcony = ?, status = ?, featured = ?, created_by = ?, image = ?, updated_at = NOW()
             WHERE id = ?";
         
         $stmt = $conn->prepare($sql);
@@ -126,10 +129,13 @@ function updateProperty() {
             $title, $slug, $description, $price, $monthly_rent, $type,
             $propertyType, $address, $bedrooms, $bathrooms, $area,
             $area_unit, $floor, $total_floors, $facing, $parking,
-            $balcony, $status, $featured, $created_by, $id
+            $balcony, $status, $featured, $created_by, $image, $id
         ]);
         
         if ($result) {
+            // Image is already stored in the properties table via the image field
+            // No additional database operations needed for image linking
+            
             // Handle property features if provided
             if (isset($requestData['features']) && is_array($requestData['features'])) {
                 // Delete existing features
