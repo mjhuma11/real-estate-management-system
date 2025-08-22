@@ -112,6 +112,7 @@ try {
                 p.featured,
                 p.views,
                 p.address,
+                p.image,
                 p.created_at,
                 p.updated_at,
                 c.name as category_name,
@@ -120,13 +121,11 @@ try {
                 u.username as agent_name,
                 u.email as agent_email,
                 u.phone as agent_phone,
-                GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.sort_order) as images,
                 GROUP_CONCAT(DISTINCT a.name) as amenities
             FROM properties p
             LEFT JOIN categories c ON p.category_id = c.id
             LEFT JOIN locations l ON p.location_id = l.id
             LEFT JOIN users u ON p.agent_id = u.id
-            LEFT JOIN property_images pi ON p.id = pi.property_id
             LEFT JOIN property_amenities pa ON p.id = pa.property_id
             LEFT JOIN amenities a ON pa.amenity_id = a.id
             $whereClause
@@ -144,10 +143,17 @@ try {
     // Format the data for each property
     foreach($properties as &$property) {
         // Format images
-        if ($property['images']) {
-            $property['images'] = explode(',', $property['images']);
+        if (!empty($property['image'])) {
+            // Simple and reliable image URL construction
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+            $host = $_SERVER['HTTP_HOST'];
+            
+            // Construct the image URL - assuming the API is in /API/ directory
+            $imageUrl = $protocol . $host . '/WDPF/React-project/real-estate-management-system/uploads/properties/' . $property['image'];
+            
+            $property['images'] = [$imageUrl];
         } else {
-            $property['images'] = [];
+            $property['images'] = ['https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'];
         }
         
         // Format amenities

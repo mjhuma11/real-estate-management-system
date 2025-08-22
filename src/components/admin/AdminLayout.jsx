@@ -49,6 +49,11 @@ const AdminLayout = () => {
               <i className="fas fa-tags me-2"></i>Property Types
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/admin/appointments" className="nav-link text-white">
+              <i className="fas fa-calendar-alt me-2"></i>Appointments
+            </Link>
+          </li>
           <li className="nav-item mt-4">
             <Link to="/" className="nav-link text-white">
               <i className="fas fa-arrow-left me-2"></i>Back to Site

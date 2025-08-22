@@ -193,6 +193,13 @@ const PropertyForm = () => {
             
             if (data.success) {
                 setSuccess(isEditing ? 'Property updated successfully!' : 'Property added successfully!');
+                // Notify other tabs/components (e.g., Home.jsx) to refresh featured properties
+                try {
+                    window.dispatchEvent(new Event('featured-updated'));
+                    localStorage.setItem('featuredUpdated', Date.now().toString());
+                } catch (notifyErr) {
+                    // noop
+                }
                 if (!isEditing) {
                     setTimeout(() => {
                         setFormData({

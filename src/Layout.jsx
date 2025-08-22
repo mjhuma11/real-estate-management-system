@@ -2,10 +2,12 @@ import { Outlet, Link } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "./contexts/AuthContext";
 import { useFavourites } from "./contexts/FavouritesContext";
+import { useCart } from "./contexts/CartContext";
 
 const Layout = () => {
     const { user, isAuthenticated, logout, isAdmin } = useContext(AuthContext);
     const { getFavouritesCount } = useFavourites();
+    const { getCartCount } = useCart();
     
     const handleLogout = () => {
         logout();
@@ -87,9 +89,11 @@ const Layout = () => {
                             <li className="nav-item">
                                 <Link className="nav-link fw-semibold position-relative" to="/cart">
                                     <i className="fas fa-shopping-cart me-1"></i>Cart
-                                    <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
-                                        0
-                                    </span>
+                                    {getCartCount() > 0 && (
+                                        <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
+                                            {getCartCount()}
+                                        </span>
+                                    )}
                                 </Link>
                             </li>
                             {isAuthenticated() ? (

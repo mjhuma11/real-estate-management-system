@@ -94,8 +94,19 @@ const Properties = () => {
       });
 
       const queryString = queryParams.toString();
-      const apiResponse = await fetch(`${API_BASE_URL}/list-properties-simple.php${queryString ? `?${queryString}` : ''}`);
+      const apiUrl = `${API_BASE_URL}/list-properties-simple.php${queryString ? `?${queryString}` : ''}`;
+      
+      const apiResponse = await fetch(apiUrl);
+      
+      if (!apiResponse.ok) {
+        throw new Error(`HTTP error! status: ${apiResponse.status}`);
+      }
+      
       const response = await apiResponse.json();
+      
+      if (!response.success) {
+        throw new Error(response.error || 'API returned unsuccessful response');
+      }
       
       setProperties(response.data || []);
       setPagination({
@@ -104,95 +115,15 @@ const Properties = () => {
       setError(null);
     } catch (err) {
       console.error('Error fetching properties:', err);
-      setError('Failed to load properties');
+      console.error('Full error details:', err);
+      setError(`Failed to load properties: ${err.message}`);
       setProperties([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const allProperties = [
-    {
-      id: 1,
-      title: "Luxury Apartment in Gulshan",
-      location: "Gulshan-2, Dhaka",
-      price: "৳ 2,50,00,000",
-      type: "For Sale",
-      propertyType: "Apartment",
-      bedrooms: 3,
-      bathrooms: 2,
-      area: "1800 sq ft",
-      featured: true,
-      image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    },
-    {
-      id: 2,
-      title: "Commercial Space in Motijheel",
-      location: "Motijheel Commercial Area, Dhaka",
-      price: "৳ 80,000/month",
-      type: "For Rent",
-      propertyType: "Commercial",
-      bedrooms: null,
-      bathrooms: 2,
-      area: "2000 sq ft",
-      featured: false,
-      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    },
-    {
-      id: 3,
-      title: "Modern House in Dhanmondi",
-      location: "Dhanmondi-15, Dhaka",
-      price: "৳ 3,20,00,000",
-      type: "For Sale",
-      propertyType: "House",
-      bedrooms: 4,
-      bathrooms: 3,
-      area: "2500 sq ft",
-      featured: false,
-      image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    },
-    {
-      id: 4,
-      title: "Modern Office in Banani",
-      location: "Banani, Dhaka",
-      price: "৳ 1,20,000/month",
-      type: "For Rent",
-      propertyType: "Commercial",
-      bedrooms: null,
-      bathrooms: 2,
-      area: "3000 sq ft",
-      featured: false,
-      image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    },
-    {
-      id: 5,
-      title: "Duplex Villa in Uttara",
-      location: "Uttara, Dhaka",
-      price: "৳ 4,50,00,000",
-      type: "For Sale",
-      propertyType: "Villa",
-      bedrooms: 5,
-      bathrooms: 4,
-      area: "3200 sq ft",
-      featured: true,
-      image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    },
-    {
-      id: 6,
-      title: "Studio Apartment in Bashundhara",
-      location: "Bashundhara, Dhaka",
-      price: "৳ 25,000/month",
-      type: "For Rent",
-      propertyType: "Apartment",
-      bedrooms: 1,
-      bathrooms: 1,
-      area: "600 sq ft",
-      featured: false,
-      image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
-    }
-  ];
-
-  // Use properties from API instead of filtering locally
+  // Use only properties from database API
   const filteredProperties = properties;
 
   const handleFilterChange = (filterType, value) => {
@@ -394,15 +325,24 @@ const Properties = () => {
                 <div key={property.id} className="col-lg-4 col-md-6">
                   <div className="card h-100 shadow-sm">
                     <div className="position-relative">
-                      <img
-                        src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'}
-                        alt={property.title}
-                        className="img-fluid w-100"
-                        style={{ height: '250px', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
-                        }}
-                      />
+                      {property.images && property.images.length > 0 ? (
+                        <img
+                          src={property.images[0]}
+                          alt={property.title}
+                          className="img-fluid w-100"
+                          style={{ height: '250px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div 
+                          className="d-flex align-items-center justify-content-center bg-light"
+                          style={{ height: '250px' }}
+                        >
+                          <div className="text-center text-muted">
+                            <i className="fas fa-image fa-3x mb-2"></i>
+                            <p className="mb-0">No Image</p>
+                          </div>
+                        </div>
+                      )}
                       <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
                         {property.type}
                       </span>

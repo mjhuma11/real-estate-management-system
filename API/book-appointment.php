@@ -35,8 +35,11 @@ try {
     $appointment_date = $input['appointment_date'] ?? $input['preferred_date'] ?? null;
     $appointment_time = $input['appointment_time'] ?? $input['preferred_time'] ?? null;
     $notes = $input['notes'] ?? $input['message'] ?? '';
+    $property_title = $input['property_title'] ?? '';
     $type = $input['type'] ?? 'buy'; // buy or rent
     $status = $input['status'] ?? 'scheduled';
+    // Prefer explicit agent_id from payload; fallback handled below
+    $agent_id_input = isset($input['agent_id']) ? (int)$input['agent_id'] : null;
 
     // Validate required fields
     $required_fields = ['name', 'email', 'phone', 'appointment_date', 'appointment_time'];
@@ -72,17 +75,19 @@ try {
         exit;
     }
 
-    // Get agent_id from property or project, or default to 1
-    $agent_id = 1; // Default agent
-    
-    if ($property_id) {
+    // Determine agent_id
+    // 1) Use explicit agent_id if provided
+    // 2) Else, try to use property's agent_id
+    // 3) Else, default to 1
+    $agent_id = $agent_id_input ?: 1;
+    if ($property_id && !$agent_id_input) {
         $property_check = $conn->prepare("SELECT agent_id FROM properties WHERE id = :property_id");
         $property_check->bindParam(':property_id', $property_id, PDO::PARAM_INT);
         $property_check->execute();
         
         $property = $property_check->fetch(PDO::FETCH_ASSOC);
-        if ($property && $property['agent_id']) {
-            $agent_id = $property['agent_id'];
+        if ($property && !empty($property['agent_id'])) {
+            $agent_id = (int)$property['agent_id'];
         }
     }
 
@@ -98,13 +103,36 @@ try {
         }
     }
 
+    // Create appointments table if it doesn't exist
+    $createTableQuery = "
+        CREATE TABLE IF NOT EXISTS appointments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NULL,
+            agent_id INT DEFAULT 1,
+            property_id INT NOT NULL,
+            project_id INT NULL,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            appointment_date DATE NOT NULL,
+            appointment_time TIME NOT NULL,
+            status ENUM('scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'scheduled',
+            admin_status ENUM('waiting', 'accepted', 'rejected') DEFAULT 'waiting',
+            notes TEXT NULL,
+            property_title VARCHAR(255) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    ";
+    $conn->exec($createTableQuery);
+
     // Insert appointment according to appointments table structure
     $sql = "INSERT INTO appointments (
         user_id, agent_id, property_id, project_id, name, email, phone, 
-        appointment_date, appointment_time, status, notes, created_at
+        appointment_date, appointment_time, status, admin_status, notes, property_title, created_at
     ) VALUES (
         :user_id, :agent_id, :property_id, :project_id, :name, :email, :phone,
-        :appointment_date, :appointment_time, :status, :notes, NOW()
+        :appointment_date, :appointment_time, :status, 'waiting', :notes, :property_title, NOW()
     )";
     
     $stmt = $conn->prepare($sql);
@@ -119,6 +147,7 @@ try {
     $stmt->bindParam(':appointment_time', $appointment_time, PDO::PARAM_STR);
     $stmt->bindParam(':status', $status, PDO::PARAM_STR);
     $stmt->bindParam(':notes', $notes, PDO::PARAM_STR);
+    $stmt->bindParam(':property_title', $property_title, PDO::PARAM_STR);
     
     if ($stmt->execute()) {
         $appointment_id = $conn->lastInsertId();

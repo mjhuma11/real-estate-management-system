@@ -8,104 +8,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Database connection
-$host = 'localhost';
-$dbname = 'netro-estate';
-$username = 'root';
-$password = '';
+require_once 'config.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
-    exit();
-}
-
-// Handle different HTTP methods
-$method = $_SERVER['REQUEST_METHOD'];
-
-switch($method) {
-    case 'GET':
-        getProperty();
-        break;
-    default:
-        http_response_code(405);
-        echo json_encode(['error' => 'Method not allowed']);
-        break;
-}
-
-function getProperty() {
-    global $conn;
-    
-    try {
-        // Get property ID from query parameters
-        $id = $_GET['id'] ?? null;
-        
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Property ID is required'
-            ]);
-            return;
-        }
-        
-        // Get property with related data
-        $sql = "SELECT 
-                    p.*,
-                    pt.name as property_type_name,
-                    u.username as agent_name,
-                    u.email as agent_email
-                FROM properties p
-                LEFT JOIN property_types pt ON p.property_type_id = pt.id
-                LEFT JOIN users u ON p.agent_id = u.id
-                WHERE p.id = :id";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        
-        if ($stmt->rowCount() === 0) {
-            http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Property not found'
-            ]);
-            return;
-        }
-        
-        $property = $stmt->fetch();
-        
-        // Get property amenities (if amenities table exists)
-        try {
-            $amenitySql = "SELECT a.id, a.name
-                           FROM property_amenities pa
-                           JOIN amenities a ON pa.amenity_id = a.id
-                           WHERE pa.property_id = :property_id";
-            
-            $amenityStmt = $conn->prepare($amenitySql);
-            $amenityStmt->bindParam(':property_id', $id);
-            $amenityStmt->execute();
-            $amenities = $amenityStmt->fetchAll();
-            
-            $property['amenities'] = $amenities;
-        } catch (Exception $e) {
-            // If amenities table doesn't exist, set empty array
-            $property['amenities'] = [];
-        }
-        
-        echo json_encode([
-            'success' => true,
-            'property' => $property
-        ]);
-        
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Error fetching property: ' . $e->getMessage()
-        ]);
+    $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    if ($id <= 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid or missing id']);
+        exit;
     }
+
+    $sql = "SELECT 
+                p.id,
+                p.title,
+                p.slug,
+                p.description,
+                p.price,
+                p.monthly_rent,
+                p.type,
+                p.property_type_id,
+                pt.name AS property_type,
+                p.bedrooms,
+                p.bathrooms,
+                p.area,
+                p.area_unit,
+                p.address,
+                p.status,
+                p.featured,
+                p.agent_id,
+                p.views,
+                p.image,
+                p.floor,
+                p.total_floors,
+                p.facing,
+                p.parking,
+                p.balcony,
+                p.created_at,
+                p.updated_at
+            FROM properties p
+            LEFT JOIN property_types pt ON p.property_type_id = pt.id
+            WHERE p.id = :id
+            LIMIT 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    $property = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$property) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Property not found']);
+        exit;
+    }
+
+    // Build image URL(s)
+    $images = [];
+    if (!empty($property['image'])) {
+        $img = $property['image'];
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'];
+        $basePath = '/WDPF/React-project/real-estate-management-system/';
+
+        if (preg_match('#^https?://#i', $img)) {
+            $images[] = $img;
+        } elseif (strpos($img, 'uploads/') === 0) {
+            $images[] = $protocol . $host . $basePath . $img;
+        } else {
+            $images[] = $protocol . $host . $basePath . 'uploads/properties/' . basename($img);
+        }
+    }
+
+    $property['images'] = $images;
+
+    // Price formatted
+    if (!empty($property['price'])) {
+        $property['price_formatted'] = '৳ ' . number_format($property['price']);
+    } elseif (!empty($property['monthly_rent'])) {
+        $property['price_formatted'] = '৳ ' . number_format($property['monthly_rent']) . '/month';
+    } else {
+        $property['price_formatted'] = 'Price on request';
+    }
+
+    // Area formatted
+    if (!empty($property['area'])) {
+        $unitMap = [
+            'sq_ft' => 'sq ft',
+            'sq_m' => 'sq m',
+            'katha' => 'katha',
+            'bigha' => 'bigha'
+        ];
+        $unit = $unitMap[$property['area_unit']] ?? 'sq ft';
+        $property['area_formatted'] = number_format($property['area']) . ' ' . $unit;
+    }
+
+    // Normalize booleans and location name
+    $property['featured'] = (bool)$property['featured'];
+    $property['location_name'] = $property['address'];
+
+    echo json_encode([
+        'success' => true,
+        'data' => $property
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error',
+        'error' => $e->getMessage()
+    ]);
 }
-?>

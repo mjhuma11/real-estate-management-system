@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Properties API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .property { border: 1px solid #ccc; margin: 10px 0; padding: 15px; }
+        .error { color: red; }
+        .success { color: green; }
+        img { max-width: 200px; max-height: 150px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Properties API Debug</h1>
+    <button onclick="testPropertiesAPI()">Test Properties API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testPropertiesAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = '<p>Testing Properties API...</p>';
+                
+                // Test the same endpoint that Properties.jsx uses
+                const apiUrl = 'http://localhost/WDPF/React-project/real-estate-management-system/API/list-properties-simple.php';
+                console.log('Fetching from:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'API returned unsuccessful response');
+                }
+                
+                // Display results
+                let html = `<div class="success">✅ API Response Successful</div>`;
+                html += `<p><strong>Total Properties:</strong> ${data.data ? data.data.length : 0}</p>`;
+                
+                if (data.data && data.data.length > 0) {
+                    html += '<h3>Properties Found:</h3>';
+                    
+                    data.data.forEach((property, index) => {
+                        const hasImages = property.images && property.images.length > 0;
+                        const imageUrl = hasImages ? property.images[0] : 'No image';
+                        
+                        html += `
+                            <div class="property">
+                                <h4>${property.title} (ID: ${property.id})</h4>
+                                <p><strong>Has Images:</strong> ${hasImages ? 'Yes' : 'No'}</p>
+                                <p><strong>Image URL:</strong> ${imageUrl}</p>
+                                <p><strong>Type:</strong> ${property.type || 'N/A'}</p>
+                                <p><strong>Price:</strong> ${property.price_formatted || 'N/A'}</p>
+                                ${hasImages ? `
+                                    <div>
+                                        <p><strong>Image Preview:</strong></p>
+                                        <img src="${imageUrl}" 
+                                             onload="console.log('Image loaded:', '${imageUrl}')" 
+                                             onerror="console.log('Image failed:', '${imageUrl}'); this.style.border='2px solid red';" 
+                                             alt="${property.title}" />
+                                    </div>
+                                ` : '<p style="color: orange;">No image available</p>'}
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p style="color: orange;">No properties found in API response</p>';
+                }
+                
+                // Show raw JSON for debugging
+                html += `
+                    <h3>Raw API Response:</h3>
+                    <pre style="background: #f5f5f5; padding: 10px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                resultDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                    <p>Check browser console for more details.</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

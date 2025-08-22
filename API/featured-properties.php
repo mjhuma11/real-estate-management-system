@@ -33,6 +33,7 @@ try {
                 p.area,
                 p.area_unit,
                 p.address,
+                p.image,
                 p.created_at,
                 pt.name as property_type
             FROM properties p
@@ -43,6 +44,42 @@ try {
     
     $stmt = $conn->query($sql);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Format the data for each property
+    foreach($properties as &$property) {
+        // Format images
+        if (!empty($property['image'])) {
+            // Build absolute URL safely based on stored value
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+            $host = $_SERVER['HTTP_HOST'];
+            $basePath = '/WDPF/React-project/real-estate-management-system/';
+
+            $img = trim($property['image']);
+            if (preg_match('#^https?://#i', $img)) {
+                // Already an absolute URL
+                $imageUrl = $img;
+            } elseif (strpos($img, 'uploads/') === 0) {
+                // Stored as relative uploads path e.g., uploads/properties/filename.jpg
+                $imageUrl = $protocol . $host . $basePath . $img;
+            } else {
+                // Stored as bare filename in properties table; assume properties folder
+                $imageUrl = $protocol . $host . $basePath . 'uploads/properties/' . $img;
+            }
+
+            $property['images'] = [$imageUrl];
+        } else {
+            $property['images'] = ['https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'];
+        }
+        
+        // Format price
+        if ($property['price']) {
+            $property['price_formatted'] = '৳ ' . number_format($property['price']);
+        } elseif ($property['monthly_rent']) {
+            $property['price_formatted'] = '৳ ' . number_format($property['monthly_rent']) . '/month';
+        } else {
+            $property['price_formatted'] = 'Price on request';
+        }
+    }
     
     echo json_encode([
         'success' => true,

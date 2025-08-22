@@ -125,7 +125,7 @@ const Favourites = () => {
                             View Details
                           </Link>
                           <Link
-                            to={`/book-now?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`}
+                            to={`/appointment?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`}
                             className="btn btn-success btn-sm"
                           >
                             <i className="fas fa-shopping-cart me-1"></i>

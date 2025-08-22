@@ -97,28 +97,27 @@ try {
     $stmt->execute($params);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Format the data for each property
+    // Format the data for each property - include ALL properties from database
     foreach($properties as &$property) {
-        // Add default image if none exists
-        if (!empty($property['image'])) {
-            // Dynamically determine the base URL
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-            $host = $_SERVER['HTTP_HOST'];
-            $baseURL = $protocol . $host;
-
-            // Get the path of the current script
-            $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
-
-            // Construct the relative path to the project root from the API directory
-            // Assuming the API directory is a direct child of the project root
-            $projectRoot = realpath($scriptPath . '/..');
-
-            // Construct the full image URL
-            $imageUrl = $baseURL . str_replace(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '', str_replace('\\', '/', $projectRoot)) . '/uploads/properties/' . $property['image'];
+        // Handle images - use database image if exists, otherwise no image
+        if (!empty($property['image']) && $property['image'] !== null) {
+            // Extract just the filename if the image field contains a path
+            $imageFilename = basename($property['image']);
+            $filePath = __DIR__ . '/../uploads/properties/' . $imageFilename;
             
-            $property['images'] = [$imageUrl];
+            if (file_exists($filePath)) {
+                // Simple and reliable image URL construction
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                $host = $_SERVER['HTTP_HOST'];
+                
+                $imageUrl = $protocol . $host . '/WDPF/React-project/real-estate-management-system/uploads/properties/' . $imageFilename;
+                $property['images'] = [$imageUrl];
+            } else {
+                error_log("Image file not found: " . $filePath);
+                $property['images'] = []; // No image available
+            }
         } else {
-            $property['images'] = ['https://via.placeholder.com/300x200?text=No+Image'];
+            $property['images'] = []; // No image in database
         }
         
         // Format price

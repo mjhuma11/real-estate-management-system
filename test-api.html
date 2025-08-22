@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI()">Test list-properties-simple.php</button>
+    <button onclick="testImages()">Test Image URLs</button>
+    <button onclick="checkDatabaseImages()">Check Database Images</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            try {
+                resultDiv.innerHTML = '<p>Testing API...</p>';
+                
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/list-properties-simple.php');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                if (data.data && data.data.length > 0) {
+                    const property = data.data[0];
+                    if (property.images && property.images.length > 0) {
+                        resultDiv.innerHTML += `
+                            <h3>First Property Image Test:</h3>
+                            <p>Image URL: ${property.images[0]}</p>
+                            <img src="${property.images[0]}" style="max-width: 300px;" onload="console.log('Image loaded successfully')" onerror="console.log('Image failed to load')" />
+                        `;
+                    }
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testImages() {
+            const resultDiv = document.getElementById('result');
+            try {
+                resultDiv.innerHTML = '<p>Testing image URLs...</p>';
+                
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/test-image-urls.php');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Image Test Results:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function checkDatabaseImages() {
+            const resultDiv = document.getElementById('result');
+            try {
+                resultDiv.innerHTML = '<p>Checking database images...</p>';
+                
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/check-database-images.php');
+                const data = await response.json();
+                
+                let html = `<h3>Database Images:</h3>`;
+                
+                if (data.success && data.properties_with_images.length > 0) {
+                    html += `<p>Found ${data.total_count} properties with images:</p>`;
+                    
+                    data.properties_with_images.forEach(property => {
+                        html += `
+                            <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                                <h4>${property.title} (ID: ${property.id})</h4>
+                                <p><strong>Image file:</strong> ${property.image_filename}</p>
+                                <p><strong>File exists:</strong> ${property.file_exists ? 'Yes' : 'No'}</p>
+                                <p><strong>File size:</strong> ${property.file_size} bytes</p>
+                                <p><strong>Image URL:</strong> <a href="${property.image_url}" target="_blank">${property.image_url}</a></p>
+                                ${property.file_exists ? `<img src="${property.image_url}" style="max-width: 200px; max-height: 150px;" onerror="this.style.border='2px solid red';" />` : '<p style="color: red;">Image file not found</p>'}
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p style="color: orange;">No properties with images found in database</p>';
+                }
+                
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
