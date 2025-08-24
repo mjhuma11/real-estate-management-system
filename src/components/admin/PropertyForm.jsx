@@ -42,6 +42,7 @@ const PropertyForm = () => {
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -54,6 +55,7 @@ const PropertyForm = () => {
 
     const fetchInitialData = async () => {
         try {
+            setInitialLoading(true);
             const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
             
             const [locationsResponse, propertyTypesResponse] = await Promise.all([
@@ -64,10 +66,13 @@ const PropertyForm = () => {
             const locationsData = await locationsResponse.json();
             const propertyTypesData = await propertyTypesResponse.json();
 
-            setLocations(locationsData.data || []);
-            setPropertyTypes(propertyTypesData.data || []);
+            setLocations(locationsData?.data || []);
+            setPropertyTypes(propertyTypesData?.data || []);
         } catch (err) {
             console.error('Error fetching initial data:', err);
+            setError('Failed to load form data. Please refresh the page.');
+        } finally {
+            setInitialLoading(false);
         }
     };
 
@@ -78,8 +83,33 @@ const PropertyForm = () => {
             const response = await fetch(`${config.API_URL}get-property.php?id=${id}`);
             const data = await response.json();
             
-            if (data.success) {
-                setFormData(data.property);
+            if (data.success && data.data) {
+                const property = data.data;
+                setFormData({
+                    title: property.title || '',
+                    slug: property.slug || '',
+                    description: property.description || '',
+                    price: property.price || '',
+                    monthly_rent: property.monthly_rent || '',
+                    type: property.type || 'For Sale',
+                    property_type_id: property.property_type_id || '',
+                    address: property.address || '',
+                    bedrooms: property.bedrooms || '',
+                    bathrooms: property.bathrooms || '',
+                    area: property.area || '',
+                    area_unit: property.area_unit || 'sq_ft',
+                    floor: property.floor || '',
+                    total_floors: property.total_floors || '',
+                    facing: property.facing || '',
+                    parking: property.parking || 0,
+                    balcony: property.balcony || 0,
+                    status: property.status || 'available',
+                    featured: property.featured || 0,
+                    agent_id: property.agent_id || '',
+                    views: property.views || 0,
+                    image: property.image || '',
+                    created_by: property.created_by || ''
+                });
             } else {
                 setError(data.error || 'Failed to fetch property');
             }
@@ -248,13 +278,25 @@ const PropertyForm = () => {
     };
 
 
-    if (loading && isEditing) {
+    if (initialLoading || (loading && isEditing)) {
         return (
             <div className="container-fluid">
                 <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
                     <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Safety check for formData
+    if (!formData) {
+        return (
+            <div className="container-fluid">
+                <div className="alert alert-danger">
+                    <i className="fas fa-exclamation-triangle me-2"></i>
+                    Error loading form data. Please refresh the page.
                 </div>
             </div>
         );
@@ -346,8 +388,8 @@ const PropertyForm = () => {
                                     onChange={handleInputChange}
                                 >
                                     <option value="">Select Property Type</option>
-                                    {propertyTypes.map(type => (
-                                        <option key={type.id} value={type.id}>{type.name}</option>
+                                    {propertyTypes && propertyTypes.length > 0 && propertyTypes.map(type => (
+                                        <option key={type.id} value={type.id}>{type.name || 'Unknown Type'}</option>
                                     ))}
                                 </select>
                             </div>
@@ -608,8 +650,8 @@ const PropertyForm = () => {
                                     }}
                                 >
                                     <option value="">Select Location (Optional)</option>
-                                    {locations.map(location => (
-                                        <option key={location.id} value={location.id}>{location.name}</option>
+                                    {locations && locations.length > 0 && locations.map(location => (
+                                        <option key={location.id} value={location.id}>{location.name || 'Unknown Location'}</option>
                                     ))}
                                 </select>
                                 <small className="text-muted">This will help auto-fill the address field</small>
@@ -666,7 +708,7 @@ const PropertyForm = () => {
                                     className="form-control" 
                                     id="created_by" 
                                     name="created_by"
-                                    value={formData.created_by}
+                                    value={formData.created_by || ''}
                                     onChange={handleInputChange}
                                     placeholder="User ID who created"
                                 />
@@ -685,7 +727,7 @@ const PropertyForm = () => {
                                     className="form-select" 
                                     id="status" 
                                     name="status"
-                                    value={formData.status}
+                                    value={formData.status || 'available'}
                                     onChange={handleInputChange}
                                 >
                                     <option value="available">Available</option>

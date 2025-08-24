@@ -156,10 +156,11 @@ try {
     }
     
     // Get total count for pagination
-    $countSql = "SELECT COUNT(*) as total FROM properties p $whereClause";
-    $countParams = array_slice($params, 0, -2); // Remove limit and offset
+    $countSql = "SELECT COUNT(*) as total FROM properties p 
+                 LEFT JOIN property_types pt ON p.property_type_id = pt.id
+                 $whereClause";
     $countStmt = $conn->prepare($countSql);
-    $countStmt->execute($countParams);
+    $countStmt->execute($params);
     $totalCount = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Calculate pagination info

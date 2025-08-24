@@ -1,19 +1,27 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useContext } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { propertiesAPI } from './services/api';
 import AuthContext from './contexts/AuthContext';
 
 const Home = () => {
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [searchFilters, setSearchFilters] = useState({
+    propertyType: '',
+    location: ''
+  });
   const { user, isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     AOS.init();
     fetchFeaturedProperties();
+    fetchPropertyTypes();
+    fetchLocations();
   }, []);
 
   // Dynamically refresh when admin marks a property as featured from PropertyForm.jsx
@@ -41,7 +49,7 @@ const Home = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}featured-properties.php`);
       const data = await response.json();
-      
+
       if (data.success) {
         setFeaturedProperties(data.properties || []);
       } else {
@@ -53,13 +61,62 @@ const Home = () => {
       setLoading(false);
     }
   };
-  
+
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}property-types.php`);
+      const data = await response.json();
+
+      if (data.success) {
+        setPropertyTypes(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching property types:', error);
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}locations.php`);
+      const data = await response.json();
+
+      if (data.success) {
+        setLocations(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    }
+  };
+
+  const handleSearchInputChange = (field, value) => {
+    setSearchFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSearchProperties = () => {
+    // Build query parameters for the search
+    const queryParams = new URLSearchParams();
+
+    if (searchFilters.propertyType) {
+      queryParams.append('property_type', searchFilters.propertyType);
+    }
+    if (searchFilters.location) {
+      queryParams.append('location', searchFilters.location);
+    }
+
+
+    // Navigate to properties page with search parameters
+    navigate(`/properties?${queryParams.toString()}`);
+  };
+
   return (
-    
+
     <div>
       {/* Hero Section */}
-             <section 
-        className="text-white py-5" 
+      <section
+        className="text-white py-5"
         style={{
           minHeight: '70vh',
           backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80)',
@@ -75,7 +132,7 @@ const Home = () => {
                 {isAuthenticated() ? `Welcome back, ${user?.username || user?.email}!` : 'Find Your Dream Property with NETRO Real Estate'}
               </h2>
               <p className="lead mb-4">
-                {isAuthenticated() 
+                {isAuthenticated()
                   ? 'Continue exploring our premium properties and find your perfect match.'
                   : 'Discover premium residential and commercial properties in prime locations. Your perfect home or investment opportunity awaits.'
                 }
@@ -92,29 +149,37 @@ const Home = () => {
                 <h4 className="mb-3">Quick Property Search</h4>
                 <div className="row g-2">
                   <div className="col-md-6">
-                    <select className="form-select">
-                      <option>Property Type</option>
-                      <option>Apartment</option>
-                      <option>House</option>
-                      <option>Commercial</option>
+                    <select
+                      className="form-select"
+                      value={searchFilters.propertyType}
+                      onChange={(e) => handleSearchInputChange('propertyType', e.target.value)}
+                    >
+                      <option value="">Property Type</option>
+                      {propertyTypes.map(type => (
+                        <option key={type.id} value={type.name}>{type.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-md-6">
-                    <select className="form-select">
-                      <option>Location</option>
-                      <option>Dhaka</option>
-                      <option>Chittagong</option>
-                      <option>Sylhet</option>
+                    <select
+                      className="form-select"
+                      value={searchFilters.location}
+                      onChange={(e) => handleSearchInputChange('location', e.target.value)}
+                    >
+                      <option value="">Location</option>
+                      {locations.map(location => (
+                        <option key={location.id} value={location.name}>{location.name}</option>
+                      ))}
                     </select>
                   </div>
-                  <div className="col-md-6">
-                    <input type="text" className="form-control" placeholder="Min Price" />
-                  </div>
-                  <div className="col-md-6">
-                    <input type="text" className="form-control" placeholder="Max Price" />
-                  </div>
+
                   <div className="col-12">
-                    <button className="btn btn-warning w-100 fw-semibold">Search Properties</button>
+                    <button
+                      className="btn btn-warning w-100 fw-semibold"
+                      onClick={handleSearchProperties}
+                    >
+                      Search Properties
+                    </button>
                   </div>
                 </div>
               </div>
@@ -124,17 +189,17 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-     
+
 
       {/* Featured Properties */}
       <section className="py-5 bg-light">
         <div className="container">
           <div className="row mb-5">
             <div className="col-12 text-center">
-             <div data-aos="flip-left"
-     data-aos-easing="ease-out-cubic"
-     data-aos-duration="2000">
-<h2 className="display-5 fw-bold mb-3">Featured Properties</h2></div> 
+              <div data-aos="flip-left"
+                data-aos-easing="ease-out-cubic"
+                data-aos-duration="2000">
+                <h2 className="display-5 fw-bold mb-3">Featured Properties</h2></div>
               <p className="lead text-muted">Discover our handpicked selection of premium properties</p>
             </div>
           </div>
@@ -151,11 +216,11 @@ const Home = () => {
                 <div key={property.id} className={`col-lg-4 col-md-6 ${index === 0 ? 'data-aos="fade-right" data-aos-offset="2000" data-aos-easing="ease-in-sine"' : index === 1 ? 'data-aos="fade-up" data-aos-offset="500" data-aos-easing="ease-in-sine"' : 'data-aos="fade-left" data-aos-offset="500" data-aos-easing="ease-in-sine"'}`}>
                   <div className="card h-100 shadow-sm">
                     <div className="position-relative">
-                      <img 
-                        src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"} 
-                        alt={property.title} 
-                        className="img-fluid w-100" 
-                        style={{height: '250px', objectFit: 'cover'}}
+                      <img
+                        src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"}
+                        alt={property.title}
+                        className="img-fluid w-100"
+                        style={{ height: '250px', objectFit: 'cover' }}
                       />
                       <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
                         {property.type}
@@ -171,13 +236,13 @@ const Home = () => {
                       <p className="card-text">{property.description ? property.description.substring(0, 80) + '...' : 'Modern property with premium amenities.'}</p>
                       <div className="d-flex justify-content-between align-items-center">
                         <h6 className="text-primary fw-bold mb-0">
-                          {property.type === 'For Sale' 
+                          {property.type === 'For Sale'
                             ? (property.price ? `৳ ${new Intl.NumberFormat('en-IN').format(property.price)}` : 'Price on request')
                             : (property.monthly_rent ? `৳ ${new Intl.NumberFormat('en-IN').format(property.monthly_rent)}/month` : 'Rent on request')
                           }
                         </h6>
                         <small className="text-muted">
-                          {property.bedrooms ? `${property.bedrooms} bed` : ''} 
+                          {property.bedrooms ? `${property.bedrooms} bed` : ''}
                           {property.bedrooms && property.bathrooms ? ' • ' : ''}
                           {property.bathrooms ? `${property.bathrooms} bath` : ''}
                         </small>
@@ -222,7 +287,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-       <section className="py-5">
+      <section className="py-5">
         <div className="container">
           <div className="row text-center mb-5">
             <div className="col-12">
@@ -233,7 +298,7 @@ const Home = () => {
           <div className="row g-4">
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
                   <i className="fas fa-home fa-2x text-primary"></i>
                 </div>
                 <h5 className="fw-bold mb-3">Premium Properties</h5>
@@ -242,7 +307,7 @@ const Home = () => {
             </div>
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
                   <i className="fas fa-users fa-2x text-primary"></i>
                 </div>
                 <h5 className="fw-bold mb-3">Expert Team</h5>
@@ -251,7 +316,7 @@ const Home = () => {
             </div>
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
                   <i className="fas fa-handshake fa-2x text-primary"></i>
                 </div>
                 <h5 className="fw-bold mb-3">Trusted Service</h5>

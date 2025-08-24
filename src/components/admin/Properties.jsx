@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../../config';
 
-const Users = () => {
-  const [users, setUsers] = useState([]);
+const Properties = () => {
+  const [properties, setProperties] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -11,6 +11,8 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProperties, setTotalProperties] = useState(0);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -70,7 +72,8 @@ const Users = () => {
   const filteredProperties = properties.filter(property => {
     const matchesSearch = 
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.location.toLowerCase().includes(searchTerm.toLowerCase());
+      (property.address && property.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (property.location_name && property.location_name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === 'all' || property.type === statusFilter;
     
@@ -104,25 +107,65 @@ const Users = () => {
     }
   };
 
-  const handleStatusToggle = async (id, currentStatus) => {
+  const handleStatusToggle = async (id, currentStatus, title) => {
     const newStatus = currentStatus === 'available' ? 'sold' : 'available';
     
+    if (!window.confirm(`Change status of "${title}" to ${newStatus}?`)) {
+      return;
+    }
+    
     try {
+      const property = properties.find(p => p.id === id);
+      if (!property) {
+        alert('Property not found');
+        return;
+      }
+
       const response = await fetch(`${API_URL}update-property.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          id, 
-          status: newStatus 
+          id: id,
+          title: property.title,
+          type: property.type,
+          status: newStatus,
+          description: property.description,
+          price: property.price,
+          monthly_rent: property.monthly_rent,
+          propertyType: property.property_type_id,
+          address: property.address,
+          bedrooms: property.bedrooms,
+          bathrooms: property.bathrooms,
+          area: property.area,
+          area_unit: property.area_unit,
+          floor: property.floor,
+          total_floors: property.total_floors,
+          facing: property.facing,
+          parking: property.parking,
+          balcony: property.balcony,
+          featured: property.featured ? 1 : 0,
+          created_by: property.created_by
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
 
       if (data.success) {
-        fetchProperties();
+        // Update the property in the local state for immediate feedback
+        setProperties(prevProperties => 
+          prevProperties.map(prop => 
+            prop.id === id 
+              ? { ...prop, status: newStatus }
+              : prop
+          )
+        );
+        console.log('Status updated successfully');
       } else {
         alert(data.error || 'Failed to update property status');
       }
@@ -132,25 +175,65 @@ const Users = () => {
     }
   };
 
-  const handleFeaturedToggle = async (id, currentFeatured) => {
+  const handleFeaturedToggle = async (id, currentFeatured, title) => {
     const newFeatured = currentFeatured ? 0 : 1;
     
     try {
+      const property = properties.find(p => p.id === id);
+      if (!property) {
+        alert('Property not found');
+        return;
+      }
+
       const response = await fetch(`${API_URL}update-property.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          id, 
-          featured: newFeatured 
+          id: id,
+          title: property.title,
+          type: property.type,
+          status: property.status,
+          description: property.description,
+          price: property.price,
+          monthly_rent: property.monthly_rent,
+          propertyType: property.property_type_id,
+          address: property.address,
+          bedrooms: property.bedrooms,
+          bathrooms: property.bathrooms,
+          area: property.area,
+          area_unit: property.area_unit,
+          floor: property.floor,
+          total_floors: property.total_floors,
+          facing: property.facing,
+          parking: property.parking,
+          balcony: property.balcony,
+          featured: newFeatured,
+          created_by: property.created_by
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
 
       if (data.success) {
-        fetchProperties();
+        // Update the property in the local state for immediate feedback
+        setProperties(prevProperties => 
+          prevProperties.map(prop => 
+            prop.id === id 
+              ? { ...prop, featured: newFeatured }
+              : prop
+          )
+        );
+        
+        // Trigger the featured-updated event for Home.jsx
+        window.dispatchEvent(new CustomEvent('featured-updated'));
+        localStorage.setItem('featuredUpdated', Date.now().toString());
+        console.log('Featured status updated successfully');
       } else {
         alert(data.error || 'Failed to update featured status');
       }
@@ -169,6 +252,16 @@ const Users = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setCurrentPage(1);
+  };
+
+  const handleViewProperty = (property) => {
+    setSelectedProperty(property);
+    setShowViewModal(true);
+  };
+
+  const closeViewModal = () => {
+    setShowViewModal(false);
+    setSelectedProperty(null);
   };
 
   return (
@@ -248,7 +341,7 @@ const Users = () => {
       </div>
 
       {/* Bulk Actions */}
-      {properties.length > 0 && (
+      {filteredProperties.length > 0 && (
         <div className="card mb-3">
           <div className="card-body py-2">
             <div className="d-flex justify-content-between align-items-center">
@@ -257,9 +350,9 @@ const Users = () => {
                   className="btn btn-sm btn-outline-warning"
                   onClick={() => {
                     if (window.confirm('Mark all visible properties as featured?')) {
-                      properties.forEach(property => {
+                      filteredProperties.forEach(property => {
                         if (!property.featured) {
-                          handleFeaturedToggle(property.id, property.featured);
+                          handleFeaturedToggle(property.id, property.featured, property.title);
                         }
                       });
                     }
@@ -272,9 +365,9 @@ const Users = () => {
                   className="btn btn-sm btn-outline-success"
                   onClick={() => {
                     if (window.confirm('Mark all visible properties as available?')) {
-                      properties.forEach(property => {
+                      filteredProperties.forEach(property => {
                         if (property.status !== 'available') {
-                          handleStatusToggle(property.id, property.status);
+                          handleStatusToggle(property.id, property.status, property.title);
                         }
                       });
                     }
@@ -318,8 +411,8 @@ const Users = () => {
                     <p className="mt-2 mb-0">Loading properties...</p>
                   </td>
                 </tr>
-              ) : properties.length > 0 ? (
-                properties.map(property => (
+              ) : filteredProperties.length > 0 ? (
+                filteredProperties.map(property => (
                   <tr key={property.id}>
                     <td>
                       <div className="d-flex align-items-center">
@@ -352,7 +445,7 @@ const Users = () => {
                     <td>
                       <button
                         className={`btn btn-sm ${property.status === 'available' ? 'btn-success' : 'btn-warning'}`}
-                        onClick={() => handleStatusToggle(property.id, property.status)}
+                        onClick={() => handleStatusToggle(property.id, property.status, property.title)}
                         title="Click to toggle status"
                       >
                         {property.status === 'available' ? 'Available' : 'Sold/Rented'}
@@ -361,7 +454,7 @@ const Users = () => {
                     <td>
                       <button
                         className={`btn btn-sm ${property.featured ? 'btn-warning' : 'btn-outline-warning'}`}
-                        onClick={() => handleFeaturedToggle(property.id, property.featured)}
+                        onClick={() => handleFeaturedToggle(property.id, property.featured, property.title)}
                         title="Click to toggle featured status"
                       >
                         <i className={`fas fa-star ${property.featured ? '' : 'text-muted'}`}></i>
@@ -396,14 +489,13 @@ const Users = () => {
                         >
                           <i className="fas fa-trash"></i>
                         </button>
-                        <Link 
-                          to={`/property/${property.id}`} 
+                        <button 
                           className="btn btn-sm btn-outline-secondary"
-                          title="View Property"
-                          target="_blank"
+                          onClick={() => handleViewProperty(property)}
+                          title="View Property Details"
                         >
                           <i className="fas fa-eye"></i>
-                        </Link>
+                        </button>
                         <button
                           className="btn btn-sm btn-outline-info"
                           onClick={() => navigator.clipboard.writeText(`${window.location.origin}/property/${property.id}`)}
@@ -493,6 +585,163 @@ const Users = () => {
           </div>
         )}
       </div>
+
+      {/* Property View Modal */}
+      {showViewModal && selectedProperty && (
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={closeViewModal}>
+          <div className="modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Property Details</h5>
+                <button type="button" className="btn-close" onClick={closeViewModal}></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    {selectedProperty.images && selectedProperty.images.length > 0 ? (
+                      <img 
+                        src={selectedProperty.images[0]} 
+                        alt={selectedProperty.title}
+                        className="img-fluid rounded mb-3"
+                        style={{ width: '100%', height: '250px', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div className="bg-light d-flex align-items-center justify-content-center rounded mb-3" style={{ height: '250px' }}>
+                        <div className="text-center text-muted">
+                          <i className="fas fa-image fa-3x mb-2"></i>
+                          <p>No Image Available</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-md-6">
+                    <h4 className="mb-3">{selectedProperty.title}</h4>
+                    <div className="mb-2">
+                      <strong>Type:</strong> 
+                      <span className={`badge ms-2 bg-${selectedProperty.type === 'For Sale' ? 'success' : 'info'}`}>
+                        {selectedProperty.type}
+                      </span>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Property Type:</strong> {selectedProperty.property_type || 'N/A'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Status:</strong> 
+                      <span className={`badge ms-2 bg-${selectedProperty.status === 'available' ? 'success' : 'warning'}`}>
+                        {selectedProperty.status === 'available' ? 'Available' : 'Sold/Rented'}
+                      </span>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Featured:</strong> 
+                      {selectedProperty.featured ? (
+                        <span className="badge bg-warning ms-2">
+                          <i className="fas fa-star me-1"></i>Featured
+                        </span>
+                      ) : (
+                        <span className="text-muted ms-2">No</span>
+                      )}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Price:</strong> ৳ {new Intl.NumberFormat('en-BD').format(selectedProperty.price || 0)}
+                    </div>
+                    {selectedProperty.monthly_rent && (
+                      <div className="mb-2">
+                        <strong>Monthly Rent:</strong> ৳ {new Intl.NumberFormat('en-BD').format(selectedProperty.monthly_rent)}/month
+                      </div>
+                    )}
+                    <div className="mb-2">
+                      <strong>Location:</strong> {selectedProperty.address || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                
+                <hr />
+                
+                <div className="row">
+                  <div className="col-md-3">
+                    <div className="text-center p-2 bg-light rounded">
+                      <i className="fas fa-bed text-primary mb-1"></i>
+                      <div><strong>{selectedProperty.bedrooms || 0}</strong></div>
+                      <small className="text-muted">Bedrooms</small>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="text-center p-2 bg-light rounded">
+                      <i className="fas fa-bath text-primary mb-1"></i>
+                      <div><strong>{selectedProperty.bathrooms || 0}</strong></div>
+                      <small className="text-muted">Bathrooms</small>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="text-center p-2 bg-light rounded">
+                      <i className="fas fa-ruler-combined text-primary mb-1"></i>
+                      <div><strong>{selectedProperty.area || 0}</strong></div>
+                      <small className="text-muted">Sq Ft</small>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="text-center p-2 bg-light rounded">
+                      <i className="fas fa-car text-primary mb-1"></i>
+                      <div><strong>{selectedProperty.parking || 0}</strong></div>
+                      <small className="text-muted">Parking</small>
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedProperty.description && (
+                  <div className="mt-3">
+                    <h6>Description:</h6>
+                    <p className="text-muted">{selectedProperty.description}</p>
+                  </div>
+                )}
+                
+                <div className="mt-3">
+                  <div className="row">
+                    {selectedProperty.floor && (
+                      <div className="col-md-6">
+                        <strong>Floor:</strong> {selectedProperty.floor}
+                        {selectedProperty.total_floors && ` of ${selectedProperty.total_floors}`}
+                      </div>
+                    )}
+                    {selectedProperty.facing && (
+                      <div className="col-md-6">
+                        <strong>Facing:</strong> {selectedProperty.facing}
+                      </div>
+                    )}
+                    {selectedProperty.balcony > 0 && (
+                      <div className="col-md-6">
+                        <strong>Balconies:</strong> {selectedProperty.balcony}
+                      </div>
+                    )}
+                    <div className="col-md-6">
+                      <strong>Created:</strong> {selectedProperty.created_at ? new Date(selectedProperty.created_at).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <Link 
+                  to={`/admin/properties/edit/${selectedProperty.id}`} 
+                  className="btn btn-primary"
+                  onClick={closeViewModal}
+                >
+                  <i className="fas fa-edit me-2"></i>Edit Property
+                </Link>
+                <Link 
+                  to={`/property/${selectedProperty.id}`} 
+                  className="btn btn-outline-secondary"
+                  target="_blank"
+                >
+                  <i className="fas fa-external-link-alt me-2"></i>View Public Page
+                </Link>
+                <button type="button" className="btn btn-secondary" onClick={closeViewModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import config from '../../data/database.js';
+import { API_URL } from '../../config.jsx';
 
 const PropertiesManagement = () => {
     const [properties, setProperties] = useState([]);
@@ -16,8 +16,17 @@ const PropertiesManagement = () => {
     const fetchProperties = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${config.API_URL}list-properties-simple.php`);
+            setError(null);
+            
+            console.log('Fetching properties from:', `${API_URL}list-properties-simple.php`);
+            const response = await fetch(`${API_URL}list-properties-simple.php`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('Properties API response:', data);
             
             if (data.success) {
                 setProperties(data.data || []);
@@ -25,6 +34,7 @@ const PropertiesManagement = () => {
                 setError(data.error || 'Failed to fetch properties');
             }
         } catch (err) {
+            console.error('Error fetching properties:', err);
             setError('Error fetching properties: ' + err.message);
         } finally {
             setLoading(false);
@@ -33,7 +43,9 @@ const PropertiesManagement = () => {
 
     const handleDelete = async (propertyId) => {
         try {
-            const response = await fetch(`${config.API_URL}delete-property.php`, {
+            console.log('Deleting property ID:', propertyId);
+            
+            const response = await fetch(`${API_URL}delete-property.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,29 +53,60 @@ const PropertiesManagement = () => {
                 body: JSON.stringify({ id: propertyId })
             });
             
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('Delete API response:', data);
             
             if (data.success) {
                 setProperties(properties.filter(p => p.id !== propertyId));
                 setDeleteModal({ show: false, property: null });
+                alert('Property deleted successfully!');
             } else {
-                alert('Error deleting property: ' + data.error);
+                alert('Error deleting property: ' + (data.error || 'Unknown error'));
             }
         } catch (err) {
+            console.error('Error deleting property:', err);
             alert('Error deleting property: ' + err.message);
         }
     };
 
     const toggleFeatured = async (propertyId, currentFeatured) => {
         try {
-            const response = await fetch(`${config.API_URL}update-property.php`, {
+            const property = properties.find(p => p.id === propertyId);
+            if (!property) {
+                alert('Property not found');
+                return;
+            }
+
+            const response = await fetch(`${API_URL}update-property.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    id: propertyId, 
-                    featured: currentFeatured ? 0 : 1 
+                    id: propertyId,
+                    title: property.title,
+                    type: property.type,
+                    status: property.status,
+                    description: property.description,
+                    price: property.price,
+                    monthly_rent: property.monthly_rent,
+                    propertyType: property.property_type_id,
+                    address: property.address,
+                    bedrooms: property.bedrooms,
+                    bathrooms: property.bathrooms,
+                    area: property.area,
+                    area_unit: property.area_unit,
+                    floor: property.floor,
+                    total_floors: property.total_floors,
+                    facing: property.facing,
+                    parking: property.parking,
+                    balcony: property.balcony,
+                    featured: currentFeatured ? 0 : 1,
+                    created_by: property.created_by
                 })
             });
             
@@ -212,15 +255,27 @@ const PropertiesManagement = () => {
                                                     </Link>
                                                     <button
                                                         className="btn btn-sm btn-outline-info"
-                                                        onClick={() => setViewModal({ show: true, property })}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log('View button clicked for property:', property.id);
+                                                            setViewModal({ show: true, property });
+                                                        }}
                                                         title="View Details"
+                                                        style={{ outline: 'none', boxShadow: 'none' }}
                                                     >
                                                         <i className="fas fa-eye"></i>
                                                     </button>
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => setDeleteModal({ show: true, property })}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log('Delete button clicked for property:', property.id);
+                                                            setDeleteModal({ show: true, property });
+                                                        }}
                                                         title="Delete"
+                                                        style={{ outline: 'none', boxShadow: 'none' }}
                                                     >
                                                         <i className="fas fa-trash"></i>
                                                     </button>
@@ -237,8 +292,8 @@ const PropertiesManagement = () => {
 
             {/* View Property Modal */}
             {viewModal.show && (
-                <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-                    <div className="modal-dialog modal-lg">
+                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1" onClick={() => setViewModal({ show: false, property: null })}>
+                    <div className="modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Property Details</h5>
@@ -327,14 +382,13 @@ const PropertiesManagement = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="modal-backdrop fade show"></div>
                 </div>
             )}
 
             {/* Delete Confirmation Modal */}
             {deleteModal.show && (
-                <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-                    <div className="modal-dialog">
+                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1" onClick={() => setDeleteModal({ show: false, property: null })}>
+                    <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Confirm Delete</h5>
@@ -366,7 +420,6 @@ const PropertiesManagement = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="modal-backdrop fade show"></div>
                 </div>
             )}
         </div>

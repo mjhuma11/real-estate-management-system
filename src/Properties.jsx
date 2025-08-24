@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useFavourites } from './contexts/FavouritesContext';
 import './styles/favourites.css';
 import PropertyCard from './components/PropertyCard';
@@ -10,14 +10,14 @@ import { useToast } from './components/common/Toast';
 
 const Properties = () => {
   const { toggleFavourite, isFavourite } = useFavourites();
-  
+  const [searchParams] = useSearchParams();
+
   const [filters, setFilters] = useState({
     propertyType: '',
-    location: '',
-    priceRange: '',
-    bedrooms: '',
-    saleType: ''
+    location: ''
   });
+
+  const [sortBy, setSortBy] = useState('featured');
 
   const [properties, setProperties] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -26,10 +26,22 @@ const Properties = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({});
 
-  // Fetch data on component mount
+  // Fetch data on component mount and handle URL parameters
   useEffect(() => {
     fetchInitialData();
-  }, []);
+
+    // Handle URL search parameters from Home page
+    const urlPropertyType = searchParams.get('property_type');
+    const urlLocation = searchParams.get('location');
+
+    if (urlPropertyType || urlLocation) {
+      setFilters(prev => ({
+        ...prev,
+        propertyType: urlPropertyType || '',
+        location: urlLocation || ''
+      }));
+    }
+  }, [searchParams]);
 
   // Fetch properties when filters change
   useEffect(() => {
@@ -40,17 +52,21 @@ const Properties = () => {
     try {
       // Direct API calls to avoid import issues
       const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
-      
+
       const [locationsResponse, propertyTypesResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/locations.php?type=area`),
+        fetch(`${API_BASE_URL}/locations.php`),
         fetch(`${API_BASE_URL}/property-types.php`)
       ]);
 
       const locationsData = await locationsResponse.json();
       const propertyTypesData = await propertyTypesResponse.json();
 
-      setLocations(locationsData.data || []);
-      setPropertyTypes(propertyTypesData.data || []);
+      if (locationsData.success) {
+        setLocations(locationsData.data || []);
+      }
+      if (propertyTypesData.success) {
+        setPropertyTypes(propertyTypesData.data || []);
+      }
     } catch (err) {
       console.error('Error fetching initial data:', err);
       setError('Failed to load initial data');
@@ -60,33 +76,24 @@ const Properties = () => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      
+
       // Build API filters
       const apiFilters = {};
-      
+
       if (filters.propertyType) {
         apiFilters.property_type = filters.propertyType;
       }
-      
+
       if (filters.location) {
         apiFilters.location = filters.location;
       }
-      
-      if (filters.saleType) {
-        apiFilters.type = filters.saleType;
-      }
-      
-      if (filters.bedrooms) {
-        const bedroomCount = filters.bedrooms.replace(/[^\d]/g, '');
-        if (bedroomCount) {
-          apiFilters.bedrooms = bedroomCount;
-        }
-      }
+
+
 
       // Direct API call to avoid import issues
       const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
       const queryParams = new URLSearchParams();
-      
+
       Object.keys(apiFilters).forEach(key => {
         if (apiFilters[key] !== '' && apiFilters[key] !== null && apiFilters[key] !== undefined) {
           queryParams.append(key, apiFilters[key]);
@@ -95,19 +102,19 @@ const Properties = () => {
 
       const queryString = queryParams.toString();
       const apiUrl = `${API_BASE_URL}/list-properties-simple.php${queryString ? `?${queryString}` : ''}`;
-      
+
       const apiResponse = await fetch(apiUrl);
-      
+
       if (!apiResponse.ok) {
         throw new Error(`HTTP error! status: ${apiResponse.status}`);
       }
-      
+
       const response = await apiResponse.json();
-      
+
       if (!response.success) {
         throw new Error(response.error || 'API returned unsuccessful response');
       }
-      
+
       setProperties(response.data || []);
       setPagination({
         total_items: response.pagination?.total_items || 0
@@ -123,8 +130,46 @@ const Properties = () => {
     }
   };
 
-  // Use only properties from database API
-  const filteredProperties = properties;
+  // Sort properties based on selected sort option
+  const sortedProperties = React.useMemo(() => {
+    if (!properties.length) return [];
+
+    const sorted = [...properties];
+
+    switch (sortBy) {
+      case 'price_low_high':
+        return sorted.sort((a, b) => {
+          const priceA = parseFloat(a.price || a.monthly_rent || 0);
+          const priceB = parseFloat(b.price || b.monthly_rent || 0);
+          return priceA - priceB;
+        });
+
+      case 'price_high_low':
+        return sorted.sort((a, b) => {
+          const priceA = parseFloat(a.price || a.monthly_rent || 0);
+          const priceB = parseFloat(b.price || b.monthly_rent || 0);
+          return priceB - priceA;
+        });
+
+      case 'newest':
+        return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      case 'oldest':
+        return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+      case 'featured':
+      default:
+        return sorted.sort((a, b) => {
+          // Featured properties first, then by creation date
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+    }
+  }, [properties, sortBy]);
+
+  // Use sorted properties
+  const filteredProperties = sortedProperties;
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
@@ -138,13 +183,30 @@ const Properties = () => {
     console.log('Search triggered with filters:', filters);
   };
 
+  const handleSortChange = (newSortBy) => {
+    setSortBy(newSortBy);
+  };
+
+  const getSortLabel = () => {
+    switch (sortBy) {
+      case 'price_low_high':
+        return 'Price: Low to High';
+      case 'price_high_low':
+        return 'Price: High to Low';
+      case 'newest':
+        return 'Newest First';
+      case 'oldest':
+        return 'Oldest First';
+      case 'featured':
+      default:
+        return 'Featured';
+    }
+  };
+
   const clearFilters = () => {
     setFilters({
       propertyType: '',
-      location: '',
-      priceRange: '',
-      bedrooms: '',
-      saleType: ''
+      location: ''
     });
   };
 
@@ -171,7 +233,7 @@ const Properties = () => {
               <div className="card shadow-sm">
                 <div className="card-body">
                   <div className="row g-3">
-                    <div className="col-lg-2 col-md-4">
+                    <div className="col-lg-4 col-md-6">
                       <select
                         className="form-select"
                         value={filters.propertyType}
@@ -183,7 +245,7 @@ const Properties = () => {
                         ))}
                       </select>
                     </div>
-                    <div className="col-lg-2 col-md-4">
+                    <div className="col-lg-4 col-md-6">
                       <select
                         className="form-select"
                         value={filters.location}
@@ -195,44 +257,7 @@ const Properties = () => {
                         ))}
                       </select>
                     </div>
-                    <div className="col-lg-2 col-md-4">
-                      <select
-                        className="form-select"
-                        value={filters.priceRange}
-                        onChange={(e) => handleFilterChange('priceRange', e.target.value)}
-                      >
-                        <option value="">Price Range</option>
-                        <option value="Under ৳50,000">Under ৳50,000</option>
-                        <option value="৳50,000 - ৳1,00,000">৳50,000 - ৳1,00,000</option>
-                        <option value="৳1,00,000 - ৳2,00,000">৳1,00,000 - ৳2,00,000</option>
-                        <option value="Above ৳2,00,000">Above ৳2,00,000</option>
-                      </select>
-                    </div>
-                    <div className="col-lg-2 col-md-4">
-                      <select
-                        className="form-select"
-                        value={filters.bedrooms}
-                        onChange={(e) => handleFilterChange('bedrooms', e.target.value)}
-                      >
-                        <option value="">Bedrooms</option>
-                        <option value="1 Bedroom">1 Bedroom</option>
-                        <option value="2 Bedrooms">2 Bedrooms</option>
-                        <option value="3 Bedrooms">3 Bedrooms</option>
-                        <option value="4+ Bedrooms">4+ Bedrooms</option>
-                      </select>
-                    </div>
-                    <div className="col-lg-2 col-md-4">
-                      <select
-                        className="form-select"
-                        value={filters.saleType}
-                        onChange={(e) => handleFilterChange('saleType', e.target.value)}
-                      >
-                        <option value="">For Sale/Rent</option>
-                        <option value="For Sale">For Sale</option>
-                        <option value="For Rent">For Rent</option>
-                      </select>
-                    </div>
-                    <div className="col-lg-2 col-md-4">
+                    <div className="col-lg-4 col-md-12">
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-primary flex-fill"
@@ -278,13 +303,49 @@ const Properties = () => {
             <div className="col-md-6 text-end">
               <div className="dropdown">
                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  Sort By: Featured
+                  Sort By: {getSortLabel()}
                 </button>
                 <ul className="dropdown-menu">
-                  <li><a className="dropdown-item" href="#">Price: Low to High</a></li>
-                  <li><a className="dropdown-item" href="#">Price: High to Low</a></li>
-                  <li><a className="dropdown-item" href="#">Newest First</a></li>
-                  <li><a className="dropdown-item" href="#">Featured</a></li>
+                  <li>
+                    <button
+                      className={`dropdown-item ${sortBy === 'featured' ? 'active' : ''}`}
+                      onClick={() => handleSortChange('featured')}
+                    >
+                      Featured
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`dropdown-item ${sortBy === 'price_low_high' ? 'active' : ''}`}
+                      onClick={() => handleSortChange('price_low_high')}
+                    >
+                      Price: Low to High
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`dropdown-item ${sortBy === 'price_high_low' ? 'active' : ''}`}
+                      onClick={() => handleSortChange('price_high_low')}
+                    >
+                      Price: High to Low
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`dropdown-item ${sortBy === 'newest' ? 'active' : ''}`}
+                      onClick={() => handleSortChange('newest')}
+                    >
+                      Newest First
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`dropdown-item ${sortBy === 'oldest' ? 'active' : ''}`}
+                      onClick={() => handleSortChange('oldest')}
+                    >
+                      Oldest First
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -333,7 +394,7 @@ const Properties = () => {
                           style={{ height: '250px', objectFit: 'cover' }}
                         />
                       ) : (
-                        <div 
+                        <div
                           className="d-flex align-items-center justify-content-center bg-light"
                           style={{ height: '250px' }}
                         >
@@ -350,7 +411,7 @@ const Properties = () => {
                         <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
                       )}
                       <div className="position-absolute bottom-0 end-0 m-3">
-                        <button 
+                        <button
                           className={`btn btn-sm rounded-circle me-2 favourite-btn ${isFavourite(property.id) ? 'btn-danger text-white favourited' : 'btn-light'}`}
                           onClick={() => toggleFavourite(property)}
                           title={isFavourite(property.id) ? 'Remove from favourites' : 'Add to favourites'}
