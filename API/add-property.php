@@ -87,6 +87,22 @@ try {
     if ($stmt->execute()) {
         $propertyId = $conn->lastInsertId();
         
+        // Handle amenities
+        if (!empty($data['amenities']) && is_array($data['amenities'])) {
+            $amenityStmt = $conn->prepare("INSERT INTO property_amenities (property_id, amenity_id) VALUES (?, ?)");
+            foreach ($data['amenities'] as $amenityId) {
+                $amenityStmt->execute([$propertyId, $amenityId]);
+            }
+        }
+        
+        // Handle features
+        if (!empty($data['features']) && is_array($data['features'])) {
+            $featureStmt = $conn->prepare("INSERT INTO property_features (property_id, feature_id) VALUES (?, ?)");
+            foreach ($data['features'] as $featureId) {
+                $featureStmt->execute([$propertyId, $featureId]);
+            }
+        }
+        
         echo json_encode([
             'success' => true,
             'message' => 'Property added successfully',

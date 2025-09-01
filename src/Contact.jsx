@@ -58,7 +58,7 @@ const Contact = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="text-white py-1" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
@@ -76,8 +76,8 @@ const Contact = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
-                    <i className="fas fa-map-marker-alt fa-2x text-primary"></i>
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-map-marker-alt fa-2x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold mb-3">Visit Our Office</h5>
                   <p className="text-muted mb-2">123 Business District</p>
@@ -89,8 +89,8 @@ const Contact = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
-                    <i className="fas fa-phone fa-2x text-primary"></i>
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-phone fa-2x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold mb-3">Call Us</h5>
                   <p className="text-muted mb-2">+880-1234-567890</p>
@@ -102,8 +102,8 @@ const Contact = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
-                    <i className="fas fa-envelope fa-2x text-primary"></i>
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-envelope fa-2x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold mb-3">Email Us</h5>
                   <p className="text-muted mb-2">info@netro-realestate.com</p>
@@ -233,7 +233,8 @@ const Contact = () => {
                       <div className="col-12">
                         <button 
                           type="submit" 
-                          className="btn btn-primary btn-lg px-5"
+                          className="btn btn-lg px-5"
+                          style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}
                           disabled={loading}
                         >
                           {loading ? (
@@ -276,16 +277,16 @@ const Contact = () => {
                   
                   <h5 className="fw-bold mb-4">Follow Us</h5>
                   <div className="d-flex gap-3">
-                    <a href="#" className="btn btn-outline-primary btn-sm">
+                    <a href="#" className="btn btn-sm" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                       <i className="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" className="btn btn-outline-primary btn-sm">
+                    <a href="#" className="btn btn-sm" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                       <i className="fab fa-twitter"></i>
                     </a>
-                    <a href="#" className="btn btn-outline-primary btn-sm">
+                    <a href="#" className="btn btn-sm" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                       <i className="fab fa-linkedin-in"></i>
                     </a>
-                    <a href="#" className="btn btn-outline-primary btn-sm">
+                    <a href="#" className="btn btn-sm" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                       <i className="fab fa-instagram"></i>
                     </a>
                   </div>
@@ -296,7 +297,7 @@ const Contact = () => {
                 <div className="card-body p-4">
                   <h5 className="fw-bold mb-3">Quick Contact</h5>
                   <p className="text-muted mb-3">Need immediate assistance? Call our hotline for instant support.</p>
-                  <a href="tel:+8801234567890" className="btn btn-primary w-100 mb-2">
+                  <a href="tel:+8801234567890" className="btn w-100 mb-2" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}>
                     <i className="fas fa-phone me-2"></i>Call Now
                   </a>
                   <a href="https://wa.me/8801234567890" className="btn btn-success w-100">

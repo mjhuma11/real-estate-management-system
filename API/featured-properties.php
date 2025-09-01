@@ -40,7 +40,7 @@ try {
             LEFT JOIN property_types pt ON p.property_type_id = pt.id
             WHERE p.featured = 1 AND p.status = 'available'
             ORDER BY p.created_at DESC
-            LIMIT 6";
+            LIMIT 15";
     
     $stmt = $conn->query($sql);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);

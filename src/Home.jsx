@@ -47,7 +47,7 @@ const Home = () => {
 
   const fetchFeaturedProperties = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}featured-properties.php`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API'}/featured-properties.php`);
       const data = await response.json();
 
       if (data.success) {
@@ -64,7 +64,7 @@ const Home = () => {
 
   const fetchPropertyTypes = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}property-types.php`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API'}/property-types.php`);
       const data = await response.json();
 
       if (data.success) {
@@ -77,7 +77,7 @@ const Home = () => {
 
   const fetchLocations = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API/'}locations.php`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API'}/locations.php`);
       const data = await response.json();
 
       if (data.success) {
@@ -175,10 +175,11 @@ const Home = () => {
 
                   <div className="col-12">
                     <button
-                      className="btn btn-warning w-100 fw-semibold"
+                      className="btn w-100 fw-semibold"
+                      style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}
                       onClick={handleSearchProperties}
                     >
-                      Search Properties
+                      <i className="fas fa-search me-2"></i>Search Properties
                     </button>
                   </div>
                 </div>
@@ -206,14 +207,14 @@ const Home = () => {
           <div className="row g-4">
             {loading ? (
               <div className="col-12 text-center py-5">
-                <div className="spinner-border text-primary" role="status">
+                <div className="spinner-border" style={{ color: '#6bc20e' }} role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
                 <p className="mt-3">Loading featured properties...</p>
               </div>
             ) : featuredProperties.length > 0 ? (
-              featuredProperties.slice(0, 6).map((property, index) => (
-                <div key={property.id} className={`col-lg-4 col-md-6 ${index === 0 ? 'data-aos="fade-right" data-aos-offset="2000" data-aos-easing="ease-in-sine"' : index === 1 ? 'data-aos="fade-up" data-aos-offset="500" data-aos-easing="ease-in-sine"' : 'data-aos="fade-left" data-aos-offset="500" data-aos-easing="ease-in-sine"'}`}>
+              featuredProperties.slice(0, 15).map((property, index) => (
+                <div key={property.id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={`${(index % 3) * 100}`}>
                   <div className="card h-100 shadow-sm">
                     <div className="position-relative">
                       <img
@@ -222,7 +223,7 @@ const Home = () => {
                         className="img-fluid w-100"
                         style={{ height: '250px', objectFit: 'cover' }}
                       />
-                      <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
+                      <span className={`badge ${property.type === 'For Sale' ? '' : 'bg-success'} position-absolute top-0 start-0 m-3`} style={property.type === 'For Sale' ? { backgroundColor: '#6bc20e' } : {}}>
                         {property.type}
                       </span>
                       <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
@@ -235,7 +236,7 @@ const Home = () => {
                       </p>
                       <p className="card-text">{property.description ? property.description.substring(0, 80) + '...' : 'Modern property with premium amenities.'}</p>
                       <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="text-primary fw-bold mb-0">
+                        <h6 className="fw-bold mb-0" style={{ color: '#6bc20e' }}>
                           {property.type === 'For Sale'
                             ? (property.price ? `৳ ${new Intl.NumberFormat('en-IN').format(property.price)}` : 'Price on request')
                             : (property.monthly_rent ? `৳ ${new Intl.NumberFormat('en-IN').format(property.monthly_rent)}/month` : 'Rent on request')
@@ -259,13 +260,13 @@ const Home = () => {
           </div>
 
           <div className="text-center mt-5">
-            <Link to="/Properties" className="btn btn-primary btn-lg px-5">View All Properties</Link>
+            <Link to="/Properties" className="btn btn-lg px-5" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}>View All Properties</Link>
           </div>
         </div>
       </section>
 
       {/* Statistics Section */}
-      <section className="py-5 bg-primary text-white">
+      <section className="py-1 text-white" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row text-center">
             <div className="col-lg-3 col-md-6 mb-4">
@@ -298,8 +299,8 @@ const Home = () => {
           <div className="row g-4">
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
-                  <i className="fas fa-home fa-2x text-primary"></i>
+                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e20' }}>
+                  <i className="fas fa-home fa-2x" style={{ color: '#6bc20e' }}></i>
                 </div>
                 <h5 className="fw-bold mb-3">Premium Properties</h5>
                 <p className="text-muted">Carefully curated selection of high-quality residential and commercial properties in prime locations.</p>
@@ -307,8 +308,8 @@ const Home = () => {
             </div>
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
-                  <i className="fas fa-users fa-2x text-primary"></i>
+                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e20' }}>
+                  <i className="fas fa-users fa-2x" style={{ color: '#98CD00' }}></i>
                 </div>
                 <h5 className="fw-bold mb-3">Expert Team</h5>
                 <p className="text-muted">Professional real estate agents with years of experience and deep market knowledge.</p>
@@ -316,8 +317,8 @@ const Home = () => {
             </div>
             <div className="col-lg-4 col-md-6">
               <div className="text-center p-4">
-                <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
-                  <i className="fas fa-handshake fa-2x text-primary"></i>
+                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e20' }}>
+                  <i className="fas fa-handshake fa-2x" style={{ color: '#6bc20e' }}></i>
                 </div>
                 <h5 className="fw-bold mb-3">Trusted Service</h5>
                 <p className="text-muted">Transparent processes, honest pricing, and dedicated customer support throughout your journey.</p>
@@ -328,15 +329,15 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-5">
+      <section className="py-3">
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
               <h2 className="display-5 fw-bold mb-4">Ready to Find Your Dream Property?</h2>
               <p className="lead text-muted mb-4">Contact our expert team today and let us help you find the perfect property</p>
               <div className="d-flex justify-content-center gap-3">
-                <button className="btn btn-primary btn-lg px-5">Get Started</button>
-                <button className="btn btn-outline-primary btn-lg px-5">Schedule Consultation</button>
+                <button className="btn btn-lg px-5" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}>Get Started</button>
+                <button className="btn btn-lg px-5" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>Schedule Consultation</button>
               </div>
             </div>
           </div>

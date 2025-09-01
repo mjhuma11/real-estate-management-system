@@ -31,7 +31,7 @@ const Properties = () => {
         status: statusFilter !== 'all' ? statusFilter : ''
       });
 
-      const response = await fetch(`${API_URL}list-properties-simple.php?${params}`);
+      const response = await fetch(`${API_URL}/list-properties-simple.php?${params}`);
       
       // Check if response is ok
       if (!response.ok) {
@@ -83,7 +83,7 @@ const Properties = () => {
   const handleDelete = async (id, title) => {
     if (window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
       try {
-        const response = await fetch(`${API_URL}delete-property.php`, {
+        const response = await fetch(`${API_URL}/delete-property.php`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ const Properties = () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}update-property.php`, {
+      const response = await fetch(`${API_URL}/update-property.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ const Properties = () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}update-property.php`, {
+      const response = await fetch(`${API_URL}/update-property.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

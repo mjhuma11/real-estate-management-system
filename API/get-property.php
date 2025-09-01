@@ -101,6 +101,18 @@ try {
         $property['area_formatted'] = number_format($property['area']) . ' ' . $unit;
     }
 
+    // Get property amenities
+    $amenitiesStmt = $conn->prepare("
+        SELECT a.id, a.name 
+        FROM amenities a 
+        INNER JOIN property_amenities pa ON a.id = pa.amenity_id 
+        WHERE pa.property_id = ?
+    ");
+    $amenitiesStmt->execute([$id]);
+    $propertyAmenities = $amenitiesStmt->fetchAll(PDO::FETCH_ASSOC);
+    $property['amenities'] = array_column($propertyAmenities, 'id'); // For form editing
+    $property['amenities_list'] = $propertyAmenities; // For display
+
     // Normalize booleans and location name
     $property['featured'] = (bool)$property['featured'];
     $property['location_name'] = $property['address'];

@@ -1,5 +1,5 @@
-// API Base URL - Update this to match your local server
-const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+// API Base URL - Uses environment variable
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
 
 // Generic API call function
 const apiCall = async (endpoint, options = {}) => {

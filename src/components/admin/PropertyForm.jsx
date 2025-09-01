@@ -35,6 +35,10 @@ const PropertyForm = () => {
     
     const [locations, setLocations] = useState([]);
     const [propertyTypes, setPropertyTypes] = useState([]);
+    const [amenities, setAmenities] = useState([]);
+
+    const [selectedAmenities, setSelectedAmenities] = useState([]);
+
     
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
@@ -56,18 +60,21 @@ const PropertyForm = () => {
     const fetchInitialData = async () => {
         try {
             setInitialLoading(true);
-            const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
             
-            const [locationsResponse, propertyTypesResponse] = await Promise.all([
+            const [locationsResponse, propertyTypesResponse, amenitiesResponse] = await Promise.all([
                 fetch(`${API_BASE_URL}/locations.php`),
-                fetch(`${API_BASE_URL}/property-types.php`)
+                fetch(`${API_BASE_URL}/property-types.php`),
+                fetch(`${API_BASE_URL}/amenities.php`)
             ]);
 
             const locationsData = await locationsResponse.json();
             const propertyTypesData = await propertyTypesResponse.json();
+            const amenitiesData = await amenitiesResponse.json();
 
             setLocations(locationsData?.data || []);
             setPropertyTypes(propertyTypesData?.data || []);
+            setAmenities(amenitiesData?.data || []);
         } catch (err) {
             console.error('Error fetching initial data:', err);
             setError('Failed to load form data. Please refresh the page.');
@@ -80,7 +87,7 @@ const PropertyForm = () => {
     const fetchProperty = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${config.API_URL}get-property.php?id=${id}`);
+            const response = await fetch(`${config.API_URL}/get-property.php?id=${id}`);
             const data = await response.json();
             
             if (data.success && data.data) {
@@ -110,6 +117,10 @@ const PropertyForm = () => {
                     image: property.image || '',
                     created_by: property.created_by || ''
                 });
+                
+                // Load existing amenities and features
+                setSelectedAmenities((property.amenities || []).map(id => parseInt(id)));
+                setSelectedFeatures((property.features || []).map(id => parseInt(id)));
             } else {
                 setError(data.error || 'Failed to fetch property');
             }
@@ -162,7 +173,7 @@ const PropertyForm = () => {
                     imageFormData.append('image', image);
                     imageFormData.append('type', 'properties');
                     
-                    const imageResponse = await fetch(`${config.API_URL}upload-image.php`, {
+                    const imageResponse = await fetch(`${config.API_URL}/upload-image.php`, {
                         method: 'POST',
                         body: imageFormData
                     });
@@ -182,12 +193,14 @@ const PropertyForm = () => {
             }
             
             const url = isEditing 
-                ? `${config.API_URL}update-property.php`
-                : `${config.API_URL}add-property.php`;
+                ? `${config.API_URL}/update-property.php`
+                : `${config.API_URL}/add-property.php`;
             
             const requestBody = {
                 ...formData,
                 image: imageUrl,
+                amenities: selectedAmenities,
+                features: selectedFeatures,
                 id: isEditing ? id : undefined
             };
             
@@ -257,6 +270,8 @@ const PropertyForm = () => {
                             image: '',
                             created_by: ''
                         });
+                        setSelectedAmenities([]);
+                        setSelectedFeatures([]);
                         setImage(null);
                         setImagePreview('');
                         setSuccess(null);
@@ -714,6 +729,53 @@ const PropertyForm = () => {
                                 />
                             </div>
 
+                        </div>
+
+                        {/* Amenities */}
+                        <div className="row mb-4">
+                            <div className="col-12">
+                                <h5 className="text-primary mb-3">Amenities</h5>
+                            </div>
+                            <div className="col-12">
+                                {amenities && amenities.length > 0 ? (
+                                    <div className="row">
+                                        {amenities.map((amenity, index) => (
+                                            <div key={`amenity-${amenity.id}-${index}`} className="col-md-4 col-sm-6 mb-2">
+                                                <div className="form-check">
+                                                    <input 
+                                                        className="form-check-input" 
+                                                        type="checkbox" 
+                                                        id={`amenity_${amenity.id}`}
+                                                        checked={selectedAmenities.includes(parseInt(amenity.id))}
+                                                        onChange={(e) => {
+                                                            const amenityId = parseInt(amenity.id);
+                                                            console.log('Amenity clicked:', amenity.name, 'ID:', amenityId, 'Checked:', e.target.checked);
+                                                            if (e.target.checked) {
+                                                                setSelectedAmenities(prev => {
+                                                                    const newSelection = [...prev, amenityId];
+                                                                    console.log('New selected amenities:', newSelection);
+                                                                    return newSelection;
+                                                                });
+                                                            } else {
+                                                                setSelectedAmenities(prev => {
+                                                                    const newSelection = prev.filter(id => id !== amenityId);
+                                                                    console.log('New selected amenities:', newSelection);
+                                                                    return newSelection;
+                                                                });
+                                                            }
+                                                        }}
+                                                    />
+                                                    <label className="form-check-label" htmlFor={`amenity_${amenity.id}`}>
+                                                        {amenity.name}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted">No amenities available</p>
+                                )}
+                            </div>
                         </div>
 
                         {/* Status & Options */}

@@ -116,7 +116,7 @@ const Projects = ({ type }) => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="text-white py-1" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
@@ -124,7 +124,7 @@ const Projects = ({ type }) => {
               <p className="lead">{pageInfo.description}</p>
               {type && (
                 <div className="mt-3">
-                  <span className="badge bg-light text-primary fs-6 px-3 py-2">
+                  <span className="badge bg-light fs-6 px-3 py-2" style={{ color: '#6bc20e' }}>
                     {projects.length} {type.charAt(0).toUpperCase() + type.slice(1)} Project{projects.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -140,16 +140,16 @@ const Projects = ({ type }) => {
           <div className="row">
             <div className="col-12">
               <div className="d-flex justify-content-center flex-wrap gap-2">
-                <Link to="/projects" className={`btn ${!type ? 'btn-primary' : 'btn-outline-primary'}`}>
+                <Link to="/projects" className={`btn ${!type ? '' : ''}`} style={!type ? { backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' } : { borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                   All Projects
                 </Link>
-                <Link to="/projects/completed" className={`btn ${type === 'completed' ? 'btn-primary' : 'btn-outline-primary'}`}>
+                <Link to="/projects/completed" className={`btn ${type === 'completed' ? '' : ''}`} style={type === 'completed' ? { backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' } : { borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                   Completed
                 </Link>
-                <Link to="/projects/ongoing" className={`btn ${type === 'ongoing' ? 'btn-primary' : 'btn-outline-primary'}`}>
+                <Link to="/projects/ongoing" className={`btn ${type === 'ongoing' ? '' : ''}`} style={type === 'ongoing' ? { backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' } : { borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                   Ongoing
                 </Link>
-                <Link to="/projects/upcoming" className={`btn ${type === 'upcoming' ? 'btn-primary' : 'btn-outline-primary'}`}>
+                <Link to="/projects/upcoming" className={`btn ${type === 'upcoming' ? '' : ''}`} style={type === 'upcoming' ? { backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' } : { borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>
                   Upcoming
                 </Link>
               </div>
@@ -173,8 +173,8 @@ const Projects = ({ type }) => {
             <div className="col-lg-3 col-md-6 text-center">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
-                  <i className="fas fa-building fa-3x text-primary mb-3"></i>
-                  <h3 className="fw-bold text-primary">25+</h3>
+                  <i className="fas fa-building fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
+                  <h3 className="fw-bold" style={{ color: '#6bc20e' }}>25+</h3>
                   <p className="text-muted mb-0">Projects Completed</p>
                 </div>
               </div>
@@ -182,8 +182,8 @@ const Projects = ({ type }) => {
             <div className="col-lg-3 col-md-6 text-center">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
-                  <i className="fas fa-home fa-3x text-primary mb-3"></i>
-                  <h3 className="fw-bold text-primary">1000+</h3>
+                  <i className="fas fa-home fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
+                  <h3 className="fw-bold" style={{ color: '#6bc20e' }}>1000+</h3>
                   <p className="text-muted mb-0">Units Delivered</p>
                 </div>
               </div>
@@ -191,8 +191,8 @@ const Projects = ({ type }) => {
             <div className="col-lg-3 col-md-6 text-center">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
-                  <i className="fas fa-users fa-3x text-primary mb-3"></i>
-                  <h3 className="fw-bold text-primary">500+</h3>
+                  <i className="fas fa-users fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
+                  <h3 className="fw-bold" style={{ color: '#6bc20e' }}>500+</h3>
                   <p className="text-muted mb-0">Happy Families</p>
                 </div>
               </div>
@@ -200,8 +200,8 @@ const Projects = ({ type }) => {
             <div className="col-lg-3 col-md-6 text-center">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
-                  <i className="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
-                  <h3 className="fw-bold text-primary">10+</h3>
+                  <i className="fas fa-map-marker-alt fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
+                  <h3 className="fw-bold" style={{ color: '#6bc20e' }}>10+</h3>
                   <p className="text-muted mb-0">Prime Locations</p>
                 </div>
               </div>
@@ -252,7 +252,7 @@ const Projects = ({ type }) => {
                           </div>
                         </div>
                         
-                        <Link to={`/project/${project.id}`} className="btn btn-primary">View Details</Link>
+                        <Link to={`/project/${project.id}`} className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}>View Details</Link>
                       </div>
                     </div>
                   </div>
@@ -266,7 +266,7 @@ const Projects = ({ type }) => {
                 <i className="fas fa-building fa-4x text-muted mb-4"></i>
                 <h4 className="text-muted mb-3">No {type} projects found</h4>
                 <p className="text-muted">Check back later for updates on our {type} projects.</p>
-                <Link to="/projects" className="btn btn-primary">View All Projects</Link>
+                <Link to="/projects" className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }}>View All Projects</Link>
               </div>
             </div>
           )}
@@ -286,14 +286,14 @@ const Projects = ({ type }) => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <i className="fas fa-home fa-3x text-primary mb-3"></i>
+                  <i className="fas fa-home fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
                   <h4 className="fw-bold mb-3">Residential</h4>
                   <p className="text-muted">Luxury apartments, family homes, and residential complexes designed for modern living.</p>
                   <ul className="list-unstyled text-start">
-                    <li><i className="fas fa-check text-primary me-2"></i>Luxury Apartments</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Family Homes</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Duplex Villas</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Studio Units</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Luxury Apartments</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Family Homes</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Duplex Villas</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Studio Units</li>
                   </ul>
                 </div>
               </div>
@@ -301,14 +301,14 @@ const Projects = ({ type }) => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <i className="fas fa-building fa-3x text-primary mb-3"></i>
+                  <i className="fas fa-building fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
                   <h4 className="fw-bold mb-3">Commercial</h4>
                   <p className="text-muted">Modern office spaces, retail centers, and commercial complexes for businesses.</p>
                   <ul className="list-unstyled text-start">
-                    <li><i className="fas fa-check text-primary me-2"></i>Office Buildings</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Retail Spaces</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Business Centers</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Co-working Spaces</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Office Buildings</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Retail Spaces</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Business Centers</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Co-working Spaces</li>
                   </ul>
                 </div>
               </div>
@@ -316,14 +316,14 @@ const Projects = ({ type }) => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body text-center p-4">
-                  <i className="fas fa-city fa-3x text-primary mb-3"></i>
+                  <i className="fas fa-city fa-3x mb-3" style={{ color: '#6bc20e' }}></i>
                   <h4 className="fw-bold mb-3">Mixed Use</h4>
                   <p className="text-muted">Integrated developments combining residential, commercial, and recreational facilities.</p>
                   <ul className="list-unstyled text-start">
-                    <li><i className="fas fa-check text-primary me-2"></i>Mixed Complexes</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Shopping Malls</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Entertainment Centers</li>
-                    <li><i className="fas fa-check text-primary me-2"></i>Lifestyle Hubs</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Mixed Complexes</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Shopping Malls</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Entertainment Centers</li>
+                    <li><i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>Lifestyle Hubs</li>
                   </ul>
                 </div>
               </div>
@@ -344,7 +344,7 @@ const Projects = ({ type }) => {
           <div className="row g-4">
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-search"></i>
                 </div>
               </div>
@@ -353,7 +353,7 @@ const Projects = ({ type }) => {
             </div>
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-drafting-compass"></i>
                 </div>
               </div>
@@ -362,7 +362,7 @@ const Projects = ({ type }) => {
             </div>
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-file-contract"></i>
                 </div>
               </div>
@@ -371,7 +371,7 @@ const Projects = ({ type }) => {
             </div>
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-hard-hat"></i>
                 </div>
               </div>
@@ -380,7 +380,7 @@ const Projects = ({ type }) => {
             </div>
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-clipboard-check"></i>
                 </div>
               </div>
@@ -389,7 +389,7 @@ const Projects = ({ type }) => {
             </div>
             <div className="col-lg-2 col-md-4 col-6 text-center">
               <div className="mb-3">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center" style={{width: '60px', height: '60px', backgroundColor: '#6bc20e'}}>
                   <i className="fas fa-key"></i>
                 </div>
               </div>
@@ -401,7 +401,7 @@ const Projects = ({ type }) => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-5 bg-primary text-white">
+      <section className="py-5 text-white" style={{ backgroundColor: 'black' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">

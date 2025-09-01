@@ -18,7 +18,7 @@ const LocationManagement = () => {
 
     const fetchLocations = async () => {
         try {
-            const response = await fetch(`${config.API_URL}locations.php`);
+            const response = await fetch(`${config.API_URL}/locations.php`);
             const data = await response.json();
             if (data.success) {
                 setLocations(data.data);
@@ -36,8 +36,8 @@ const LocationManagement = () => {
 
         try {
             const url = editingLocation 
-                ? `${config.API_URL}locations.php`
-                : `${config.API_URL}locations.php`;
+                ? `${config.API_URL}/locations.php`
+                : `${config.API_URL}/locations.php`;
             
             const method = editingLocation ? 'PUT' : 'POST';
             const payload = editingLocation 
@@ -83,7 +83,7 @@ const LocationManagement = () => {
         }
 
         try {
-            const response = await fetch(`${config.API_URL}locations.php?id=${id}`, {
+            const response = await fetch(`${config.API_URL}/locations.php?id=${id}`, {
                 method: 'DELETE'
             });
 

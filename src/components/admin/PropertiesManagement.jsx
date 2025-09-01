@@ -18,8 +18,8 @@ const PropertiesManagement = () => {
             setLoading(true);
             setError(null);
             
-            console.log('Fetching properties from:', `${API_URL}list-properties-simple.php`);
-            const response = await fetch(`${API_URL}list-properties-simple.php`);
+            console.log('Fetching properties from:', `${API_URL}/list-properties-simple.php`);
+            const response = await fetch(`${API_URL}/list-properties-simple.php`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -45,7 +45,7 @@ const PropertiesManagement = () => {
         try {
             console.log('Deleting property ID:', propertyId);
             
-            const response = await fetch(`${API_URL}delete-property.php`, {
+            const response = await fetch(`${API_URL}/delete-property.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,56 +73,105 @@ const PropertiesManagement = () => {
         }
     };
 
-    const toggleFeatured = async (propertyId, currentFeatured) => {
+    const updateProperty = async (propertyId, updates) => {
         try {
             const property = properties.find(p => p.id === propertyId);
             if (!property) {
                 alert('Property not found');
-                return;
+                return false;
             }
 
-            const response = await fetch(`${API_URL}update-property.php`, {
+            console.log('Updating property:', propertyId, 'Updates:', updates);
+            
+            // Prepare the update payload with correct field mapping
+            const updateData = {
+                id: parseInt(propertyId),
+                title: property.title || '',
+                slug: property.slug || '',
+                type: property.type || 'For Sale',
+                status: property.status || 'available',
+                description: property.description || '',
+                price: property.price || null,
+                monthly_rent: property.monthly_rent || null,
+                propertyType: property.property_type_id || null,
+                address: property.address || '',
+                bedrooms: property.bedrooms || null,
+                bathrooms: property.bathrooms || null,
+                area: property.area || null,
+                area_unit: property.area_unit || 'sq_ft',
+                floor: property.floor || null,
+                total_floors: property.total_floors || null,
+                facing: property.facing || '',
+                parking: property.parking || 0,
+                balcony: property.balcony || 0,
+                featured: property.featured || 0,
+                created_by: property.created_by || null,
+                image: property.image || null,
+                ...updates // Override with specific updates
+            };
+
+            console.log('Update payload:', updateData);
+
+            const response = await fetch(`${API_URL}/update-property.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    id: propertyId,
-                    title: property.title,
-                    type: property.type,
-                    status: property.status,
-                    description: property.description,
-                    price: property.price,
-                    monthly_rent: property.monthly_rent,
-                    propertyType: property.property_type_id,
-                    address: property.address,
-                    bedrooms: property.bedrooms,
-                    bathrooms: property.bathrooms,
-                    area: property.area,
-                    area_unit: property.area_unit,
-                    floor: property.floor,
-                    total_floors: property.total_floors,
-                    facing: property.facing,
-                    parking: property.parking,
-                    balcony: property.balcony,
-                    featured: currentFeatured ? 0 : 1,
-                    created_by: property.created_by
-                })
+                body: JSON.stringify(updateData)
             });
             
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('Update API response:', data);
             
             if (data.success) {
+                // Update the local state
                 setProperties(properties.map(p => 
                     p.id === propertyId 
-                        ? { ...p, featured: currentFeatured ? 0 : 1 }
+                        ? { ...p, ...updates }
                         : p
                 ));
+                
+                console.log('Property updated successfully');
+                return true;
             } else {
-                alert('Error updating property: ' + data.error);
+                console.error('API Error:', data.error);
+                alert('Error updating property: ' + (data.error || 'Unknown error'));
+                return false;
             }
         } catch (err) {
+            console.error('Error updating property:', err);
             alert('Error updating property: ' + err.message);
+            return false;
+        }
+    };
+
+    const toggleFeatured = async (propertyId, currentFeatured) => {
+        const newFeatured = currentFeatured ? 0 : 1;
+        console.log('Toggling featured status for property:', propertyId, 'from', currentFeatured, 'to', newFeatured);
+        
+        const success = await updateProperty(propertyId, { 
+            featured: newFeatured 
+        });
+        
+        if (success) {
+            console.log('Featured status updated successfully');
+        }
+    };
+
+    const toggleStatus = async (propertyId, currentStatus) => {
+        const newStatus = currentStatus === 'available' ? 'sold' : 'available';
+        console.log('Toggling status for property:', propertyId, 'from', currentStatus, 'to', newStatus);
+        
+        const success = await updateProperty(propertyId, { 
+            status: newStatus 
+        });
+        
+        if (success) {
+            console.log('Status updated successfully');
         }
     };
 
@@ -225,14 +274,19 @@ const PropertiesManagement = () => {
                                             </td>
                                             <td>{property.location_name || 'N/A'}</td>
                                             <td>
-                                                <span className={`badge ${
-                                                    property.status === 'available' ? 'bg-success' :
-                                                    property.status === 'pending' ? 'bg-warning' :
-                                                    property.status === 'sold' ? 'bg-danger' :
-                                                    'bg-secondary'
-                                                }`}>
+                                                <button
+                                                    className={`btn btn-sm ${
+                                                        property.status === 'available' ? 'btn-success' :
+                                                        property.status === 'pending' ? 'btn-warning' :
+                                                        property.status === 'sold' ? 'btn-danger' :
+                                                        'btn-secondary'
+                                                    }`}
+                                                    onClick={() => toggleStatus(property.id, property.status)}
+                                                    title="Click to toggle status"
+                                                    style={{ outline: 'none', boxShadow: 'none' }}
+                                                >
                                                     {property.status}
-                                                </span>
+                                                </button>
                                             </td>
                                             <td>
                                                 <button

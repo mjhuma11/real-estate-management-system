@@ -41,7 +41,7 @@ const Services = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="text-white py-2" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
@@ -67,8 +67,8 @@ const Services = () => {
                 <div className="card h-100 border-0 shadow-sm">
                   <div className="card-body p-4">
                     <div className="text-center mb-4">
-                      <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
-                        <i className={`${service.icon} fa-2x text-primary`}></i>
+                      <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e20' }}>
+                        <i className={`${service.icon} fa-2x`} style={{ color: '#6bc20e' }}></i>
                       </div>
                       <h4 className="fw-bold">{service.title}</h4>
                     </div>
@@ -76,13 +76,13 @@ const Services = () => {
                     <ul className="list-unstyled">
                       {service.features.map((feature, idx) => (
                         <li key={idx} className="mb-2">
-                          <i className="fas fa-check text-primary me-2"></i>
+                          <i className="fas fa-check me-2" style={{ color: '#6bc20e' }}></i>
                           {feature}
                         </li>
                       ))}
                     </ul>
                     <div className="text-center mt-4">
-                      <button className="btn btn-outline-primary">Learn More</button>
+                      <button className="btn" style={{ borderColor: '#6bc20e', color: '#6bc20e', backgroundColor: 'transparent' }}>Learn More</button>
                     </div>
                   </div>
                 </div>
@@ -104,7 +104,7 @@ const Services = () => {
           <div className="row g-4">
             <div className="col-lg-3 col-md-6 text-center">
               <div className="position-relative">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e' }}>
                   <span className="fw-bold fs-3">1</span>
                 </div>
                 <h5 className="fw-bold mb-3">Consultation</h5>
@@ -113,7 +113,7 @@ const Services = () => {
             </div>
             <div className="col-lg-3 col-md-6 text-center">
               <div className="position-relative">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e' }}>
                   <span className="fw-bold fs-3">2</span>
                 </div>
                 <h5 className="fw-bold mb-3">Research</h5>
@@ -122,7 +122,7 @@ const Services = () => {
             </div>
             <div className="col-lg-3 col-md-6 text-center">
               <div className="position-relative">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e' }}>
                   <span className="fw-bold fs-3">3</span>
                 </div>
                 <h5 className="fw-bold mb-3">Execution</h5>
@@ -131,7 +131,7 @@ const Services = () => {
             </div>
             <div className="col-lg-3 col-md-6 text-center">
               <div className="position-relative">
-                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px'}}>
+                <div className="text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#6bc20e' }}>
                   <span className="fw-bold fs-3">4</span>
                 </div>
                 <h5 className="fw-bold mb-3">Support</h5>
@@ -152,7 +152,7 @@ const Services = () => {
                 <div className="col-12">
                   <div className="d-flex">
                     <div className="flex-shrink-0">
-                      <i className="fas fa-award fa-2x text-primary"></i>
+                      <i className="fas fa-award fa-2x" style={{ color: '#6bc20e' }}></i>
                     </div>
                     <div className="flex-grow-1 ms-3">
                       <h5 className="fw-bold">15+ Years Experience</h5>
@@ -163,7 +163,7 @@ const Services = () => {
                 <div className="col-12">
                   <div className="d-flex">
                     <div className="flex-shrink-0">
-                      <i className="fas fa-users fa-2x text-primary"></i>
+                      <i className="fas fa-users fa-2x" style={{ color: '#6bc20e' }}></i>
                     </div>
                     <div className="flex-grow-1 ms-3">
                       <h5 className="fw-bold">Expert Team</h5>
@@ -174,7 +174,7 @@ const Services = () => {
                 <div className="col-12">
                   <div className="d-flex">
                     <div className="flex-shrink-0">
-                      <i className="fas fa-handshake fa-2x text-primary"></i>
+                      <i className="fas fa-handshake fa-2x" style={{ color: '#6bc20e' }}></i>
                     </div>
                     <div className="flex-grow-1 ms-3">
                       <h5 className="fw-bold">Personalized Service</h5>
@@ -185,7 +185,7 @@ const Services = () => {
                 <div className="col-12">
                   <div className="d-flex">
                     <div className="flex-shrink-0">
-                      <i className="fas fa-clock fa-2x text-primary"></i>
+                      <i className="fas fa-clock fa-2x" style={{ color: '#6bc20e' }}></i>
                     </div>
                     <div className="flex-grow-1 ms-3">
                       <h5 className="fw-bold">24/7 Support</h5>
@@ -196,10 +196,10 @@ const Services = () => {
               </div>
             </div>
             <div className="col-lg-6">
-              <div className="bg-light rounded-3 p-5" style={{height: '500px'}}>
+              <div className="bg-light rounded-3 p-5" style={{ height: '500px' }}>
                 <div className="h-100 d-flex align-items-center justify-content-center">
                   <div className="text-center">
-                    <i className="fas fa-handshake fa-5x text-primary mb-4"></i>
+                    <i className="fas fa-handshake fa-5x mb-4" style={{ color: '#6bc20e' }}></i>
                     <h4 className="fw-bold">Professional Service</h4>
                     <p className="text-muted">Committed to excellence in every transaction</p>
                   </div>
@@ -211,7 +211,7 @@ const Services = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-5 bg-primary text-white">
+      <section className="py-2 text-black" style={{ backgroundColor: '#F1F0E4' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">

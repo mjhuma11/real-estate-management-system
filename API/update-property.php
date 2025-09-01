@@ -1,11 +1,15 @@
 <?php
+// Set CORS headers
+header('Access-Control-Allow-Origin: http://localhost:5173');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Credentials: true');
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+    http_response_code(200);
+    exit();
 }
 
 require_once 'config.php';
@@ -40,11 +44,11 @@ function updateProperty() {
         error_log("Update received data: " . print_r($requestData, true));
         
         // Validate required fields
-        if (!$requestData || !isset($requestData['id']) || !isset($requestData['title']) || !isset($requestData['type'])) {
+        if (!$requestData || !isset($requestData['id'])) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'error' => 'ID, title and type are required fields',
+                'error' => 'Property ID is required',
                 'received_data' => $requestData
             ]);
             return;
@@ -53,42 +57,50 @@ function updateProperty() {
         $id = $requestData['id'];
         
         // Check if property exists
-        $checkStmt = $conn->prepare("SELECT id FROM properties WHERE id = ?");
+        $checkStmt = $conn->prepare("SELECT * FROM properties WHERE id = ?");
         $checkStmt->execute([$id]);
-        
         if ($checkStmt->rowCount() === 0) {
             http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Property not found'
-            ]);
+            echo json_encode(['success' => false, 'error' => 'Property not found']);
             return;
         }
         
-        // Prepare the data
-        $title = trim($requestData['title']);
-        $slug = isset($requestData['slug']) && !empty($requestData['slug']) ? $requestData['slug'] : createSlug($title);
-        $description = $requestData['description'] ?? null;
-        $price = $requestData['price'] ?? null;
-        $monthly_rent = $requestData['monthly_rent'] ?? null;
-        $type = $requestData['type']; // 'For Sale' or 'For Rent'
-        $propertyType = $requestData['propertyType'] ?? null;
-        $address = $requestData['address'] ?? null;
-        $bedrooms = $requestData['bedrooms'] ?? null;
-        $bathrooms = $requestData['bathrooms'] ?? null;
-        $area = $requestData['area'] ?? null;
-        $area_unit = $requestData['area_unit'] ?? 'sq_ft';
-        $floor = $requestData['floor'] ?? null;
-        $total_floors = $requestData['total_floors'] ?? null;
-        $facing = $requestData['facing'] ?? null;
-        $parking = $requestData['parking'] ?? 0;
-        $balcony = $requestData['balcony'] ?? 0;
-        $status = $requestData['status'] ?? 'available';
-        $featured = $requestData['featured'] ?? 0;
-        $created_by = $requestData['created_by'] ?? null;
+        // Get existing property data
+        $existingData = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Define allowed fields and their default values
+        $allowedFields = [
+            'title' => $existingData['title'],
+            'slug' => $existingData['slug'],
+            'description' => $existingData['description'],
+            'price' => $existingData['price'],
+            'monthly_rent' => $existingData['monthly_rent'],
+            'type' => $existingData['type'],
+            'property_type_id' => $existingData['property_type_id'],
+            'bedrooms' => $existingData['bedrooms'],
+            'bathrooms' => $existingData['bathrooms'],
+            'area' => $existingData['area'],
+            'area_unit' => $existingData['area_unit'] ?? 'sq_ft',
+            'address' => $existingData['address'],
+            'status' => $existingData['status'] ?? 'available',
+            'featured' => $existingData['featured'] ?? 0,
+            'floor' => $existingData['floor'],
+            'total_floors' => $existingData['total_floors'],
+            'facing' => $existingData['facing'],
+            'parking' => $existingData['parking'] ?? 0,
+            'balcony' => $existingData['balcony'] ?? 0,
+            'image' => $existingData['image']
+        ];
+        
+        // Update with new values from request
+        foreach ($allowedFields as $field => $defaultValue) {
+            if (array_key_exists($field, $requestData)) {
+                $allowedFields[$field] = $requestData[$field] !== null ? $requestData[$field] : $defaultValue;
+            }
+        }
         
         // Validate type
-        if (!in_array($type, ['For Sale', 'For Rent'])) {
+        if (!in_array($allowedFields['type'], ['For Sale', 'For Rent'])) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
@@ -97,7 +109,8 @@ function updateProperty() {
             return;
         }
         
-        // Check if slug already exists for other properties
+        // Handle slug uniqueness
+        $slug = $allowedFields['slug'];
         $checkSlugStmt = $conn->prepare("SELECT id FROM properties WHERE slug = ? AND id != ?");
         $checkSlugStmt->execute([$slug, $id]);
         
@@ -110,31 +123,42 @@ function updateProperty() {
                 $checkSlugStmt->execute([$slug, $id]);
                 $counter++;
             } while ($checkSlugStmt->rowCount() > 0);
+            $allowedFields['slug'] = $slug;
         }
         
-        // Handle image update
-        $image = $requestData['image'] ?? null;
+        // Prepare the update query
+        $updateFields = [];
+        $params = [];
         
-        // Update the property
-        $sql = "UPDATE properties SET 
-            title = ?, slug = ?, description = ?, price = ?, monthly_rent = ?, type = ?, 
-            property_type_id = ?, address = ?, bedrooms = ?, bathrooms = ?, area = ?, 
-            area_unit = ?, floor = ?, total_floors = ?, facing = ?, parking = ?, 
-            balcony = ?, status = ?, featured = ?, created_by = ?, image = ?, updated_at = NOW()
-            WHERE id = ?";
+        foreach ($allowedFields as $field => $value) {
+            $updateFields[] = "$field = ?";
+            $params[] = $value !== null ? $value : null;
+        }
         
+        // Add ID to params for WHERE clause
+        $params[] = $id;
+        
+        // Build and execute the query
+        $sql = "UPDATE properties SET " . implode(', ', $updateFields) . ", updated_at = NOW() WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        
-        $result = $stmt->execute([
-            $title, $slug, $description, $price, $monthly_rent, $type,
-            $propertyType, $address, $bedrooms, $bathrooms, $area,
-            $area_unit, $floor, $total_floors, $facing, $parking,
-            $balcony, $status, $featured, $created_by, $image, $id
-        ]);
+        $result = $stmt->execute($params);
         
         if ($result) {
             // Image is already stored in the properties table via the image field
             // No additional database operations needed for image linking
+            
+            // Handle property amenities if provided
+            if (isset($requestData['amenities']) && is_array($requestData['amenities'])) {
+                // Delete existing amenities
+                $deleteStmt = $conn->prepare("DELETE FROM property_amenities WHERE property_id = ?");
+                $deleteStmt->execute([$id]);
+                
+                // Insert new amenities
+                foreach ($requestData['amenities'] as $amenityId) {
+                    $amenityStmt = $conn->prepare("INSERT INTO property_amenities (property_id, amenity_id) VALUES (?, ?)");
+                    $amenityStmt->execute([$id, $amenityId]);
+                }
+            }
             
             // Handle property features if provided
             if (isset($requestData['features']) && is_array($requestData['features'])) {

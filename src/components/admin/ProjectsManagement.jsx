@@ -15,7 +15,7 @@ const ProjectsManagement = () => {
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${config.API_URL}list-projects.php`);
+            const response = await fetch(`${config.API_URL}/list-projects.php`);
             const data = await response.json();
             
             if (data.success) {
@@ -32,7 +32,7 @@ const ProjectsManagement = () => {
 
     const handleDelete = async (projectId) => {
         try {
-            const response = await fetch(`${config.API_URL}delete-project.php`, {
+            const response = await fetch(`${config.API_URL}/delete-project.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const ProjectsManagement = () => {
 
     const toggleFeatured = async (projectId, currentFeatured) => {
         try {
-            const response = await fetch(`${config.API_URL}update-project.php`, {
+            const response = await fetch(`${config.API_URL}/update-project.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

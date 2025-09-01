@@ -33,7 +33,7 @@ const Register = () => {
     try {
       const { username, email, password } = formData;
 
-      const response = await fetch(`${API_URL}register.php`, {
+      const response = await fetch(`${API_URL}/register.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,7 +2,7 @@ const About = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="text-white py-2" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
@@ -24,25 +24,25 @@ const About = () => {
               <div className="row g-3">
                 <div className="col-6">
                   <div className="d-flex align-items-center">
-                    <i className="fas fa-check-circle text-primary me-2"></i>
+                    <i className="fas fa-check-circle me-2" style={{ color: '#6bc20e' }}></i>
                     <span>Licensed & Certified</span>
                   </div>
                 </div>
                 <div className="col-6">
                   <div className="d-flex align-items-center">
-                    <i className="fas fa-check-circle text-primary me-2"></i>
+                    <i className="fas fa-check-circle me-2" style={{ color: '#6bc20e' }}></i>
                     <span>15+ Years Experience</span>
                   </div>
                 </div>
                 <div className="col-6">
                   <div className="d-flex align-items-center">
-                    <i className="fas fa-check-circle text-primary me-2"></i>
+                    <i className="fas fa-check-circle me-2" style={{ color: '#6bc20e' }}></i>
                     <span>Expert Team</span>
                   </div>
                 </div>
                 <div className="col-6">
                   <div className="d-flex align-items-center">
-                    <i className="fas fa-check-circle text-primary me-2"></i>
+                    <i className="fas fa-check-circle me-2" style={{ color: '#6bc20e' }}></i>
                     <span>24/7 Support</span>
                   </div>
                 </div>
@@ -52,7 +52,7 @@ const About = () => {
               <div className="bg-light rounded-3 p-4" style={{height: '400px'}}>
                 <div className="h-100 d-flex align-items-center justify-content-center">
                   <div className="text-center">
-                    <i className="fas fa-building fa-5x text-primary mb-3"></i>
+                    <i className="fas fa-building fa-5x mb-3" style={{ color: '#6bc20e' }}></i>
                     <h5>Modern Office Building</h5>
                   </div>
                 </div>
@@ -70,7 +70,7 @@ const About = () => {
               <div className="card h-100 border-0 shadow-sm">
                 <div className="card-body p-5">
                   <div className="text-center mb-4">
-                    <i className="fas fa-bullseye fa-3x text-primary"></i>
+                    <i className="fas fa-bullseye fa-3x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h3 className="text-center fw-bold mb-4">Our Mission</h3>
                   <p className="text-center">To provide exceptional real estate services that exceed our clients' expectations while maintaining the highest standards of professionalism, integrity, and customer satisfaction.</p>
@@ -81,7 +81,7 @@ const About = () => {
               <div className="card h-100 border-0 shadow-sm">
                 <div className="card-body p-5">
                   <div className="text-center mb-4">
-                    <i className="fas fa-eye fa-3x text-primary"></i>
+                    <i className="fas fa-eye fa-3x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h3 className="text-center fw-bold mb-4">Our Vision</h3>
                   <p className="text-center">To be the most trusted and innovative real estate company in Bangladesh, setting new standards in property services and helping shape the future of urban development.</p>
@@ -105,11 +105,11 @@ const About = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px'}}>
-                    <i className="fas fa-user fa-3x text-primary"></i>
+                  <div className="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-user fa-3x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold">Mr. Rahman Ahmed</h5>
-                  <p className="text-primary mb-2">CEO & Founder</p>
+                  <p className="mb-2" style={{ color: '#6bc20e' }}>CEO & Founder</p>
                   <p className="text-muted small">15+ years in real estate development and investment consulting.</p>
                 </div>
               </div>
@@ -117,11 +117,11 @@ const About = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px'}}>
-                    <i className="fas fa-user fa-3x text-primary"></i>
+                  <div className="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-user fa-3x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold">Ms. Fatima Khan</h5>
-                  <p className="text-primary mb-2">Head of Sales</p>
+                  <p className="mb-2" style={{ color: '#6bc20e' }}>Head of Sales</p>
                   <p className="text-muted small">Expert in residential properties with 12+ years experience.</p>
                 </div>
               </div>
@@ -129,11 +129,11 @@ const About = () => {
             <div className="col-lg-4 col-md-6">
               <div className="card border-0 shadow-sm">
                 <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px'}}>
-                    <i className="fas fa-user fa-3x text-primary"></i>
+                  <div className="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{width: '100px', height: '100px', backgroundColor: '#6bc20e20'}}>
+                    <i className="fas fa-user fa-3x" style={{ color: '#6bc20e' }}></i>
                   </div>
                   <h5 className="fw-bold">Mr. Karim Hassan</h5>
-                  <p className="text-primary mb-2">Commercial Director</p>
+                  <p className="mb-2" style={{ color: '#6bc20e' }}>Commercial Director</p>
                   <p className="text-muted small">Specializes in commercial real estate and investment properties.</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ const About = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-5 bg-primary text-white">
+      <section className="py-4 text-black" style={{ backgroundColor: '#F8F8F8' }}>
         <div className="container">
           <div className="row mb-5">
             <div className="col-12 text-center">

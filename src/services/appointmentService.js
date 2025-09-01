@@ -23,7 +23,7 @@ class AppointmentService {
   // Submit appointment to backend (for when admin processes cart items)
   async submitAppointment(appointmentData) {
     try {
-      const response = await fetch(`${config.API_URL}book-appointment.php`, {
+      const response = await fetch(`${config.API_URL}/book-appointment.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ class AppointmentService {
   // Check appointment status from backend
   async checkAppointmentStatus(appointmentId) {
     try {
-      const response = await fetch(`${config.API_URL}get-appointment-status.php?id=${appointmentId}`);
+      const response = await fetch(`${config.API_URL}/get-appointment-status.php?id=${appointmentId}`);
       let result;
       try {
         result = await response.json();

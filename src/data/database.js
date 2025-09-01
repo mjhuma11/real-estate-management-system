@@ -687,7 +687,7 @@ export const searchProperties = (query) => {
 
 // Default export for config
 const config = {
-  API_URL: 'http://localhost/WDPF/React-project/real-estate-management-system/API/'
+  API_URL: import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API'
 };
 
 export default config;

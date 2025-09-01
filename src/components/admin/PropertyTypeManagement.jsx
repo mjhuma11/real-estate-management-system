@@ -18,7 +18,7 @@ const PropertyTypeManagement = () => {
 
     const fetchPropertyTypes = async () => {
         try {
-            const response = await fetch(`${config.API_URL}property-types.php`);
+            const response = await fetch(`${config.API_URL}/property-types.php`);
             const data = await response.json();
             if (data.success) {
                 setPropertyTypes(data.data);
@@ -35,7 +35,7 @@ const PropertyTypeManagement = () => {
         setError('');
 
         try {
-            const url = `${config.API_URL}property-types.php`;
+            const url = `${config.API_URL}/property-types.php`;
             const method = editingPropertyType ? 'PUT' : 'POST';
             const payload = editingPropertyType 
                 ? { ...formData, id: editingPropertyType.id }
@@ -80,7 +80,7 @@ const PropertyTypeManagement = () => {
         }
 
         try {
-            const response = await fetch(`${config.API_URL}property-types.php?id=${id}`, {
+            const response = await fetch(`${config.API_URL}/property-types.php?id=${id}`, {
                 method: 'DELETE'
             });
 

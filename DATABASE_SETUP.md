@@ -41,6 +41,7 @@ To populate your database with sample properties:
 In `src/services/api.js`, update the API_BASE_URL if needed:
 ```javascript
 const API_BASE_URL = 'http://localhost/real-estate-management-system/API';
+
 ```
 
 ### 6. Test the Connection

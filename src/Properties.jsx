@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useFavourites } from './contexts/FavouritesContext';
 import './styles/favourites.css';
-import PropertyCard from './components/PropertyCard';
 import PropertySearch from './components/PropertySearch';
-import LoadingSpinner from './components/common/LoadingSpinner';
-import { useToast } from './components/common/Toast';
 
 
 const Properties = () => {
@@ -50,8 +47,8 @@ const Properties = () => {
 
   const fetchInitialData = async () => {
     try {
-      // Direct API calls to avoid import issues
-      const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      // Use environment variable or fallback
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
 
       const [locationsResponse, propertyTypesResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/locations.php`),
@@ -90,8 +87,8 @@ const Properties = () => {
 
 
 
-      // Direct API call to avoid import issues
-      const API_BASE_URL = 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      // Use environment variable or fallback
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
       const queryParams = new URLSearchParams();
 
       Object.keys(apiFilters).forEach(key => {
@@ -214,7 +211,7 @@ const Properties = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="text-white py-3" style={{ backgroundColor: '#7ADAA5' }}>
         <div className="container">
           <div className="row">
             <div className="col-12 text-center">
@@ -230,53 +227,15 @@ const Properties = () => {
         <div className="container">
           <div className="row">
             <div className="col-12">
-              <div className="card shadow-sm">
-                <div className="card-body">
-                  <div className="row g-3">
-                    <div className="col-lg-4 col-md-6">
-                      <select
-                        className="form-select"
-                        value={filters.propertyType}
-                        onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-                      >
-                        <option value="">Property Type</option>
-                        {propertyTypes.map(type => (
-                          <option key={type.id} value={type.name}>{type.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <select
-                        className="form-select"
-                        value={filters.location}
-                        onChange={(e) => handleFilterChange('location', e.target.value)}
-                      >
-                        <option value="">Location</option>
-                        {locations.map(location => (
-                          <option key={location.id} value={location.name}>{location.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-lg-4 col-md-12">
-                      <div className="d-flex gap-2">
-                        <button
-                          className="btn btn-primary flex-fill"
-                          onClick={handleSearch}
-                        >
-                          <i className="fas fa-search me-2"></i>Search
-                        </button>
-                        <button
-                          className="btn btn-outline-secondary"
-                          onClick={clearFilters}
-                          title="Clear filters"
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PropertySearch
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onClearFilters={clearFilters}
+                locations={locations}
+                propertyTypes={propertyTypes}
+                loading={loading}
+              />
             </div>
           </div>
         </div>
@@ -294,7 +253,7 @@ const Properties = () => {
                     Showing {filteredProperties.length} properties
                     {pagination.total_items && ` of ${pagination.total_items} total`}
                     {Object.values(filters).some(filter => filter) && (
-                      <span className="text-primary"> (filtered)</span>
+                      <span style={{ color: '#6bc20e' }}> (filtered)</span>
                     )}
                   </>
                 )}
@@ -354,7 +313,7 @@ const Properties = () => {
           <div className="row g-4">
             {loading ? (
               <div className="col-12 text-center py-5">
-                <div className="spinner-border text-primary" role="status">
+                <div className="spinner-border" style={{ color: '#6bc20e' }} role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
                 <p className="mt-3">Loading properties...</p>
@@ -365,7 +324,7 @@ const Properties = () => {
                   <i className="fas fa-exclamation-triangle fa-3x mb-3"></i>
                   <h4>Error Loading Properties</h4>
                   <p>{error}</p>
-                  <button className="btn btn-primary" onClick={fetchProperties}>
+                  <button className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }} onClick={fetchProperties}>
                     Try Again
                   </button>
                 </div>
@@ -376,7 +335,7 @@ const Properties = () => {
                   <i className="fas fa-search fa-3x mb-3"></i>
                   <h4>No properties found</h4>
                   <p>Try adjusting your search filters to find more properties.</p>
-                  <button className="btn btn-primary" onClick={clearFilters}>
+                  <button className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }} onClick={clearFilters}>
                     Clear All Filters
                   </button>
                 </div>
@@ -404,7 +363,7 @@ const Properties = () => {
                           </div>
                         </div>
                       )}
-                      <span className={`badge ${property.type === 'For Sale' ? 'bg-primary' : 'bg-success'} position-absolute top-0 start-0 m-3`}>
+                      <span className={`badge ${property.type === 'For Sale' ? '' : 'bg-success'} position-absolute top-0 start-0 m-3`} style={property.type === 'For Sale' ? { backgroundColor: '#6bc20e' } : {}}>
                         {property.type}
                       </span>
                       {property.featured == 1 && (
@@ -447,7 +406,7 @@ const Properties = () => {
                           </small>
                         </div>
                       </div>
-                      <h6 className="text-primary fw-bold mb-3">
+                      <h6 className="fw-bold mb-3" style={{ color: '#6bc20e' }}>
                         {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
                       </h6>
                       <div className="d-grid gap-2">
@@ -500,19 +459,7 @@ const Properties = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-5 bg-primary text-white">
-        <div className="container">
-          <div className="row">
-            <div className="col-12 text-center">
-              <h3 className="fw-bold mb-3">Can't Find What You're Looking For?</h3>
-              <p className="lead mb-4">Let our experts help you find the perfect property that matches your needs</p>
-              <button className="btn btn-light btn-lg px-5">Contact Our Team</button>
-            </div>
-          </div>
-        </div>
-      </section>
+  
     </div>
   );
 };
