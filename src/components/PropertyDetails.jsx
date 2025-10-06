@@ -43,8 +43,27 @@ const PropertyDetails = () => {
     return <div className="container mt-5">Property not found</div>;
   }
 
+  const handleCallNow = () => {
+    window.location.href = 'tel:01754219926';
+  };
+
   return (
     <div className="container mt-5">
+      {/* Call Now Button - Fixed at bottom right */}
+      <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
+        <button 
+          onClick={handleCallNow}
+          className="btn btn-success btn-lg d-flex align-items-center"
+          style={{ 
+            borderRadius: '50px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
+        >
+          <i className="fas fa-phone-alt me-2"></i>
+          Call Now (01754219926)
+        </button>
+      </div>
+
       {/* Main Image */}
       <div className="mb-4">
         {property.images && property.images.length > 0 ? (
@@ -292,7 +311,7 @@ const PropertyDetails = () => {
             </div>
           </div>
        </div>
-</div>
+    </div>
 
 {/* Sidebar */}
 <div className="col-lg-4">

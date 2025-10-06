@@ -1,14 +1,29 @@
 <?php
-// Set JSON header first
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+// Start output buffering to prevent any unwanted output
+ob_start();
 
-// Handle preflight requests
+// Set CORS headers first - moved to a function for consistency
+function setCORSHeaders() {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Allow-Credentials: true');
+    header('Content-Type: application/json');
+}
+
+// Set CORS headers immediately
+setCORSHeaders();
+
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    ob_end_clean(); // Clear buffer
     exit(0);
 }
+
+// Disable HTML error output to prevent JSON corruption
+ini_set('display_errors', 0);
+error_reporting(0); // Turn off all error reporting
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -17,14 +32,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         'success' => false,
         'error' => 'Method not allowed'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
-require_once 'config.php';
-
-// Disable HTML error output to prevent JSON corruption
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
+// Database connection (direct to avoid config.php conflicts)
+try {
+    $conn = new PDO("mysql:host=localhost;dbname=netro-estate", "root", "");
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Database connection failed: ' . $e->getMessage()
+    ]);
+    ob_end_flush(); // Send output
+    exit;
+}
 
 // Get the request data
 $input = file_get_contents('php://input');
@@ -34,6 +59,7 @@ if (empty($input)) {
         'success' => false,
         'error' => 'No data received'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -44,6 +70,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
         'success' => false,
         'error' => 'Invalid JSON data'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -54,6 +81,7 @@ if (!$requestData || !isset($requestData['username']) || !isset($requestData['em
         'success' => false,
         'error' => 'Username, email, and password are required'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -69,6 +97,7 @@ if (empty($username) || empty($email) || empty($password)) {
         'success' => false,
         'error' => 'All fields are required'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -78,6 +107,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         'success' => false,
         'error' => 'Invalid email format'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -87,6 +117,7 @@ if (strlen($password) < 6) {
         'success' => false,
         'error' => 'Password must be at least 6 characters long'
     ]);
+    ob_end_flush(); // Send output
     exit;
 }
 
@@ -102,6 +133,7 @@ try {
             'success' => false,
             'error' => 'Email already exists'
         ]);
+        ob_end_flush(); // Send output
         exit;
     }
 
@@ -154,8 +186,9 @@ try {
         'success' => false,
         'error' => 'An unexpected error occurred. Please try again.'
     ]);
+} finally {
+    // Close connection
+    $conn = null;
+    ob_end_flush(); // Send output
 }
-
-// Close connection
-$conn = null;
 ?>

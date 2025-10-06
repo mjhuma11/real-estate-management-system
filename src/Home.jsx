@@ -106,7 +106,6 @@ const Home = () => {
       queryParams.append('location', searchFilters.location);
     }
 
-
     // Navigate to properties page with search parameters
     navigate(`/properties?${queryParams.toString()}`);
   };
@@ -215,7 +214,11 @@ const Home = () => {
             ) : featuredProperties.length > 0 ? (
               featuredProperties.slice(0, 15).map((property, index) => (
                 <div key={property.id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={`${(index % 3) * 100}`}>
-                  <div className="card h-100 shadow-sm">
+                  <div 
+                    className="card h-100 shadow-sm" 
+                    onClick={() => navigate(`/property/${property.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="position-relative">
                       <img
                         src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"}

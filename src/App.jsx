@@ -7,7 +7,7 @@ import Services from "./Services";
 import Projects from "./Projects";
 import ProjectDetail from "./ProjectDetail";
 import PropertyDetails from "./PropertyDetails";
-import Appointment from "./Appointment";
+import BookingForm from "./BookingForm";
 import Favourites from "./Favourites";
 import Cart from "./Cart";
 import Contact from "./Contact";
@@ -21,6 +21,10 @@ import { CartProvider } from './contexts/CartContext';
 import { ToastProvider } from './components/common/Toast';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+
+// User Components
+import UserBookings from "./UserBookings";
+import Profile from "./Profile";
 
 // Admin Components
 import AdminLayout from "./components/admin/AdminLayout";
@@ -53,12 +57,15 @@ const App = () => {
               <Route path="projects/upcoming" element={<Projects type="upcoming" />} />
               <Route path="project/:id" element={<ProjectDetail />} />
               <Route path="property/:id" element={<PropertyDetails />} />
-              <Route path="appointment" element={<Appointment />} />
+              <Route path="booking" element={<BookingForm />} />
               <Route path="favourites" element={<Favourites />} />
               <Route path="cart" element={<Cart />} />
+              <Route path="my-bookings" element={<UserBookings />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="contact" element={<Contact />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
+              
 
             {/* Admin Routes */}
             <Route path="admin" element={

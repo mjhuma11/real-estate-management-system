@@ -1,12 +1,15 @@
-import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
 import { useFavourites } from './contexts/FavouritesContext';
+import AuthContext from './contexts/AuthContext';
 import './styles/favourites.css';
 import './styles/property-details.css';
 
 const PropertyDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toggleFavourite, isFavourite } = useFavourites();
+  const { isAuthenticated, isCustomer } = useContext(AuthContext);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,6 +42,31 @@ const PropertyDetails = () => {
     };
     if (id) fetchProperty();
   }, [id]);
+
+  // Handle authentication for customer-only actions
+  const handleFavouriteClick = (property) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    if (!isCustomer()) {
+      alert('Only customers can add properties to favourites');
+      return;
+    }
+    toggleFavourite(property);
+  };
+
+  const handleBookingClick = (property) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    if (!isCustomer()) {
+      alert('Only customers can book properties');
+      return;
+    }
+    navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);
+  };
 
   if (loading) {
     return (
@@ -292,7 +320,7 @@ const PropertyDetails = () => {
                     </span>
                     <button
                       className={`btn btn-sm rounded-circle favourite-btn ${isFavourite(property.id) ? 'btn-danger text-white favourited' : 'btn-outline-danger'}`}
-                      onClick={() => toggleFavourite(property)}
+                      onClick={() => handleFavouriteClick(property)}
                       title={isFavourite(property.id) ? 'Remove from favourites' : 'Add to favourites'}
                     >
                       <i className={`fas fa-heart ${isFavourite(property.id) ? 'text-white' : ''}`}></i>
@@ -385,13 +413,13 @@ const PropertyDetails = () => {
 
                   {/* Action Buttons */}
                   <div className="d-grid gap-2">
-                    <Link
-                      to={`/appointment?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`}
+                    <button
+                      onClick={() => handleBookingClick(property)}
                       className={`btn btn-lg ${property.type === 'For Sale' ? 'btn-primary' : 'btn-success'}`}
                     >
                       <i className="fas fa-calendar-check me-2"></i>
-                      {property.type === 'For Sale' ? 'Schedule Viewing' : 'Book Inspection'}
-                    </Link>
+                      {property.type === 'For Sale' ? 'Purchase Booking' : 'Rental Booking'}
+                    </button>
                     
                     <button className="btn btn-outline-secondary btn-lg">
                       <i className="fas fa-phone me-2"></i>Call Now

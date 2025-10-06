@@ -75,27 +75,32 @@ const Layout = () => {
                             <li className="nav-item">
                                 <Link className="nav-link fw-semibold" to="/contact">Contact</Link>
                             </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold position-relative d-flex align-items-center justify-content-center" to="/favourites" style={{width: '50px', height: '50px'}}>
-                                    <i className="fas fa-heart position-relative" style={{fontSize: '2rem', color: '#dc3545'}}>
-                                        {getFavouritesCount() > 0 && (
-                                            <span className="position-absolute top-50 start-50 translate-middle text-white fw-bold" style={{fontSize: '0.8rem', textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
-                                                {getFavouritesCount()}
-                                            </span>
-                                        )}
-                                    </i>
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold position-relative" to="/cart">
-                                    <i className="fas fa-shopping-cart me-1"></i>Cart
-                                    {getCartCount() > 0 && (
-                                        <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
-                                            {getCartCount()}
-                                        </span>
-                                    )}
-                                </Link>
-                            </li>
+                            {/* Show favourites and cart only for customers */}
+                            {(!isAuthenticated() || (user && (user.role === 'customer' || !user.role))) && (
+                                <>
+                                    <li className="nav-item">
+                                        <Link className="nav-link fw-semibold position-relative d-flex align-items-center justify-content-center" to="/favourites" style={{width: '50px', height: '50px'}}>
+                                            <i className="fas fa-heart position-relative" style={{fontSize: '2rem', color: '#dc3545'}}>
+                                                {getFavouritesCount() > 0 && (
+                                                    <span className="position-absolute top-50 start-50 translate-middle text-white fw-bold" style={{fontSize: '0.8rem', textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                                                        {getFavouritesCount()}
+                                                    </span>
+                                                )}
+                                            </i>
+                                        </Link>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Link className="nav-link fw-semibold position-relative" to="/cart">
+                                            <i className="fas fa-shopping-cart me-1"></i>Cart
+                                            {getCartCount() > 0 && (
+                                                <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
+                                                    {getCartCount()}
+                                                </span>
+                                            )}
+                                        </Link>
+                                    </li>
+                                </>
+                            )}
                             {isAuthenticated() ? (
                                 <>
                                     <li className="nav-item dropdown">
@@ -111,11 +116,27 @@ const Layout = () => {
                                                     </Link>
                                                 </li>
                                             )}
-                                            <li>
-                                                <Link className="dropdown-item" to="/profile">
-                                                    <i className="fas fa-user-cog me-2"></i>Profile
-                                                </Link>
-                                            </li>
+                                            {user?.role === 'agent' && (
+                                                <li>
+                                                    <Link className="dropdown-item" to="/agent/profile">
+                                                        <i className="fas fa-user-tie me-2"></i>Agent Profile
+                                                    </Link>
+                                                </li>
+                                            )}
+                                            {(user?.role === 'customer' || !user?.role) && (
+                                                <>
+                                                    <li>
+                                                        <Link className="dropdown-item" to="/my-bookings">
+                                                            <i className="fas fa-calendar-check me-2"></i>My Bookings
+                                                        </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link className="dropdown-item" to="/profile">
+                                                            <i className="fas fa-user-cog me-2"></i>My Account
+                                                        </Link>
+                                                    </li>
+                                                </>
+                                            )}
                                             <li><hr className="dropdown-divider" /></li>
                                             <li>
                                                 <button className="dropdown-item text-danger" onClick={handleLogout}>

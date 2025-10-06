@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Agents API</title>
+</head>
+<body>
+    <h1>Debug Agents API</h1>
+    <button onclick="testDbConnection()">Test DB Connection</button>
+    <button onclick="testDebugAgents()">Test Debug Agents</button>
+    <button onclick="testOriginalAgents()">Test Original Agents</button>
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        async function testDbConnection() {
+            try {
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/test-db-connection.php');
+                const text = await response.text();
+                
+                resultsDiv.innerHTML = `
+                    <h3>DB Connection Test:</h3>
+                    <pre style="background: #f0f0f0; padding: 10px; white-space: pre-wrap;">${text}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h3>DB Connection Error:</h3>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testDebugAgents() {
+            try {
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/debug-agents.php');
+                const text = await response.text();
+                
+                resultsDiv.innerHTML = `
+                    <h3>Debug Agents Response:</h3>
+                    <pre style="background: #f0f0f0; padding: 10px; white-space: pre-wrap;">${text}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h3>Debug Agents Error:</h3>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testOriginalAgents() {
+            try {
+                const response = await fetch('http://localhost/WDPF/React-project/real-estate-management-system/API/get-agents.php');
+                const text = await response.text();
+                
+                resultsDiv.innerHTML += `
+                    <h3>Original Agents Response:</h3>
+                    <pre style="background: #f0f0f0; padding: 10px; white-space: pre-wrap;">${text}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <h3>Original Agents Error:</h3>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

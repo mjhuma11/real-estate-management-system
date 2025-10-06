@@ -1,5 +1,5 @@
 const config = {
-    API_URL: import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API'
+    API_URL: import.meta.env.VITE_API_URL || '/api'
 };
 
 // Helper function to get API URL with proper formatting

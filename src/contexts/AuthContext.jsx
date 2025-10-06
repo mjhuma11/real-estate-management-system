@@ -44,7 +44,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isCustomer = () => {
-    return user && user.role === 'customer';
+    return user && (user.role === 'customer' || !user.role); // Default to customer if no role specified
+  };
+
+  const getUserRole = () => {
+    return user?.role || 'customer'; // Default to customer if no role specified
   };
 
   const value = {
@@ -55,6 +59,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     isAgent,
     isCustomer,
+    getUserRole,
     loading
   };
 

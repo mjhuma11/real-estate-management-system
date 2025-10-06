@@ -38,6 +38,7 @@ const PropertyForm = () => {
     const [amenities, setAmenities] = useState([]);
 
     const [selectedAmenities, setSelectedAmenities] = useState([]);
+    const [selectedFeatures, setSelectedFeatures] = useState([]);
 
     
     const [images, setImages] = useState([]);

@@ -1,8 +1,72 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
 import { useFavourites } from './contexts/FavouritesContext';
+import AuthContext from './contexts/AuthContext';
 
 const Favourites = () => {
   const { favourites, removeFavourite, clearAllFavourites } = useFavourites();
+  const { isAuthenticated, isCustomer } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  // Handle authentication for customer-only actions
+  const handleBookingClick = (property) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    if (!isCustomer()) {
+      alert('Only customers can book properties');
+      return;
+    }
+    navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);
+  };
+
+  // Check if user is authenticated and is a customer
+  if (!isAuthenticated()) {
+    return (
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-8 text-center">
+            <div className="card shadow-lg border-0">
+              <div className="card-body p-5">
+                <i className="fas fa-lock text-muted mb-4" style={{ fontSize: '4rem' }}></i>
+                <h2 className="text-muted mb-3">Please Login</h2>
+                <p className="text-muted mb-4">
+                  You need to login to view your favourite properties.
+                </p>
+                <Link to="/login" className="btn btn-primary">
+                  <i className="fas fa-sign-in-alt me-2"></i>Login
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isCustomer()) {
+    return (
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-8 text-center">
+            <div className="card shadow-lg border-0">
+              <div className="card-body p-5">
+                <i className="fas fa-user-times text-muted mb-4" style={{ fontSize: '4rem' }}></i>
+                <h2 className="text-muted mb-3">Access Restricted</h2>
+                <p className="text-muted mb-4">
+                  Only customers can access the favourites feature.
+                </p>
+                <Link to="/properties" className="btn btn-primary">
+                  <i className="fas fa-home me-2"></i>Browse Properties
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -124,13 +188,13 @@ const Favourites = () => {
                           >
                             View Details
                           </Link>
-                          <Link
-                            to={`/appointment?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`}
+                          <button
+                            onClick={() => handleBookingClick(property)}
                             className="btn btn-success btn-sm"
                           >
                             <i className="fas fa-shopping-cart me-1"></i>
                             Book Now
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>

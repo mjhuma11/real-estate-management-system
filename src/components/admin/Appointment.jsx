@@ -1,167 +1,84 @@
-import React, { useState, useEffect, useRef } from 'react';
-import config from '../../config';
+import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
-  const [appointments, setAppointments] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const pollingRef = useRef(null);
+  const [error, setError] = useState('');
+  const [filters, setFilters] = useState({
+    booking_type: '',
+    status: '',
+    page: 1
+  });
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // initial fetch
-    refreshAppointments(false);
+    fetchBookings();
+  }, [filters]);
 
-    // start polling every 10 seconds (silent)
-    pollingRef.current = setInterval(() => {
-      refreshAppointments(true);
-    }, 10000);
-
-    // cleanup
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
-  }, []);
-
-  const refreshAppointments = async (silent = true) => {
+  const fetchBookings = async () => {
     try {
-      if (!silent) setLoading(true);
-      const response = await fetch(`${config.API_BASE_URL}/get-appointments.php`);
-      const result = await response.json();
+      setLoading(true);
+      const queryParams = new URLSearchParams();
+      
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          queryParams.append(key, filters[key]);
+        }
+      });
 
-      if (result.success) {
-        setAppointments(prev => {
-          // simple diff check to avoid unnecessary re-renders
-          const incoming = JSON.stringify(result.data || []);
-          const existing = JSON.stringify(prev || []);
-          if (incoming !== existing) {
-            return result.data || [];
-          }
-          return prev;
-        });
-        setLastUpdated(new Date());
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/get-bookings.php?${queryParams}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setBookings(data.data || []);
       } else {
-        console.error('Failed to fetch appointments:', result.message);
+        setError(data.message || 'Failed to fetch bookings');
       }
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
+    } catch (err) {
+      setError('Failed to load bookings');
+      console.error('Error fetching bookings:', err);
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId, newStatus) => {
+  const updateBookingStatus = async (id, status) => {
     try {
-      const response = await fetch(`${config.API_BASE_URL}/update-appointment-status.php`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/update-booking-status.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          appointment_id: appointmentId,
-          status: newStatus
-        })
+        body: JSON.stringify({ id, status })
       });
-
-      const result = await response.json();
       
-      if (result.success) {
-        // Update local state
-        setAppointments(prev => prev.map(appointment => 
-          appointment.id === appointmentId 
-            ? { ...appointment, admin_status: newStatus, updated_at: new Date().toISOString() }
-            : appointment
-        ));
-        
-        // Show success message
-        alert(`Appointment ${newStatus} successfully!`);
-      } else {
-        alert(result.message || 'Failed to update appointment status');
-      }
-    } catch (error) {
-      console.error('Error updating appointment status:', error);
-      alert('An error occurred while updating the appointment status');
-    }
-  };
-
-  const deleteAppointment = async (appointmentId) => {
-    if (!confirm('Are you sure you want to delete this appointment?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${config.API_BASE_URL}/delete-appointment.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ appointment_id: appointmentId })
-      });
-
-      const result = await response.json();
+      const data = await response.json();
       
-      if (result.success) {
-        setAppointments(prev => prev.filter(appointment => appointment.id !== appointmentId));
-        alert('Appointment deleted successfully!');
+      if (data.success) {
+        fetchBookings();
+        alert(`Booking ${status} successfully!`);
       } else {
-        alert(result.message || 'Failed to delete appointment');
+        alert('Failed to update booking status');
       }
-    } catch (error) {
-      console.error('Error deleting appointment:', error);
-      alert('An error occurred while deleting the appointment');
+    } catch (err) {
+      console.error('Error updating booking:', err);
+      alert('Failed to update booking status');
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'accepted':
-        return <span className="badge bg-success">Accepted</span>;
-      case 'rejected':
-        return <span className="badge bg-danger">Rejected</span>;
-      case 'waiting':
-      default:
-        return <span className="badge bg-warning">Waiting</span>;
-    }
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+      page: 1 // Reset to first page when filtering
+    }));
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const viewBookingDetails = (booking) => {
+    setSelectedBooking(booking);
+    setShowModal(true);
   };
-
-  const formatTime = (timeString) => {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesFilter = filter === 'all' || appointment.admin_status === filter;
-    const matchesSearch = 
-      appointment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.property_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.phone?.includes(searchTerm);
-    
-    return matchesFilter && matchesSearch;
-  });
-
-  const getFilterCounts = () => {
-    return {
-      all: appointments.length,
-      waiting: appointments.filter(a => a.admin_status === 'waiting').length,
-      accepted: appointments.filter(a => a.admin_status === 'accepted').length,
-      rejected: appointments.filter(a => a.admin_status === 'rejected').length
-    };
-  };
-
-  const counts = getFilterCounts();
 
   if (loading) {
     return (
@@ -173,212 +90,186 @@ const Appointment = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        <h4 className="alert-heading">Error!</h4>
+        <p>{error}</p>
+        <button className="btn btn-outline-danger" onClick={fetchBookings}>
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="container-fluid py-4">
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <h1 className="h3 mb-0">
-              <i className="fas fa-calendar-alt me-2"></i>Appointment Management
-            </h1>
-            <button 
-              onClick={() => refreshAppointments(false)}
-              className="btn btn-outline-primary"
-            >
-              <i className="fas fa-sync-alt me-2"></i>Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <div className="row align-items-center">
-                <div className="col-md-8">
-                  <ul className="nav nav-pills">
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link ${filter === 'all' ? 'active' : ''}`}
-                        onClick={() => setFilter('all')}
-                      >
-                        All ({counts.all})
-                      </button>
-                    </li>
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link ${filter === 'waiting' ? 'active' : ''}`}
-                        onClick={() => setFilter('waiting')}
-                      >
-                        <i className="fas fa-clock me-1"></i>Waiting ({counts.waiting})
-                      </button>
-                    </li>
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link ${filter === 'accepted' ? 'active' : ''}`}
-                        onClick={() => setFilter('accepted')}
-                      >
-                        <i className="fas fa-check me-1"></i>Accepted ({counts.accepted})
-                      </button>
-                    </li>
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link ${filter === 'rejected' ? 'active' : ''}`}
-                        onClick={() => setFilter('rejected')}
-                      >
-                        <i className="fas fa-times me-1"></i>Rejected ({counts.rejected})
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-                <div className="col-md-4">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <i className="fas fa-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search appointments..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Appointments List */}
+    <div className="container-fluid">
       <div className="row">
         <div className="col-12">
-          {lastUpdated && (
-            <div className="text-muted small mb-2">
-              <i className="fas fa-history me-1"></i>
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </div>
-          )}
-          {filteredAppointments.length === 0 ? (
-            <div className="card">
-              <div className="card-body text-center py-5">
-                <i className="fas fa-calendar-times text-muted mb-3" style={{ fontSize: '3rem' }}></i>
-                <h4 className="text-muted">No appointments found</h4>
-                <p className="text-muted">
-                  {filter === 'all' 
-                    ? 'No appointments have been submitted yet.' 
-                    : `No ${filter} appointments found.`}
-                </p>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="fw-bold">Bookings Management</h2>
+            <button className="btn btn-primary" onClick={fetchBookings}>
+              <i className="fas fa-sync-alt me-2"></i>
+              Refresh
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <div className="row g-3">
+                <div className="col-md-3">
+                  <label className="form-label">Booking Type</label>
+                  <select
+                    className="form-select"
+                    value={filters.booking_type}
+                    onChange={(e) => handleFilterChange('booking_type', e.target.value)}
+                  >
+                    <option value="">All Types</option>
+                    <option value="sale">Sale Bookings</option>
+                    <option value="rent">Rent Bookings</option>
+                  </select>
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">Status</label>
+                  <select
+                    className="form-select"
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                  >
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div className="col-md-3 d-flex align-items-end">
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => setFilters({ booking_type: '', status: '', page: 1 })}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {bookings.length === 0 ? (
+            <div className="text-center py-5">
+              <i className="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+              <h4 className="text-muted">No bookings found</h4>
+              <p className="text-muted">Property bookings will appear here when customers submit booking requests.</p>
             </div>
           ) : (
             <div className="card">
-              <div className="card-body p-0">
+              <div className="card-body">
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0">
-                    <thead className="bg-light">
+                  <table className="table table-hover">
+                    <thead className="table-dark">
                       <tr>
+                        <th>ID</th>
+                        <th>Type</th>
                         <th>Customer</th>
                         <th>Property</th>
-                        <th>Date & Time</th>
+                        <th>Amount</th>
+                        <th>Booking Date</th>
                         <th>Status</th>
-                        <th>Contact</th>
+                        <th>Created</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredAppointments.map((appointment) => (
-                        <tr key={appointment.id}>
+                      {bookings.map(booking => (
+                        <tr key={booking.id}>
+                          <td>#{booking.id}</td>
+                          <td>
+                            <span className={`badge ${booking.booking_type_class}`}>
+                              {booking.booking_type === 'sale' ? 'Sale' : 'Rent'}
+                            </span>
+                          </td>
                           <td>
                             <div>
-                              <strong>{appointment.name}</strong>
+                              <strong>{booking.customer_name || 'N/A'}</strong>
                               <br />
-                              <small className="text-muted">
-                                ID: {appointment.id}
-                              </small>
+                              <small className="text-muted">{booking.customer_email}</small>
                             </div>
                           </td>
                           <td>
                             <div>
-                              <strong>{appointment.property_title || 'Unknown Property'}</strong>
+                              <strong>{booking.property_title || 'N/A'}</strong>
                               <br />
-                              <small className="text-muted">
-                                Property ID: {appointment.property_id}
-                              </small>
+                              <small className="text-muted">{booking.property_address}</small>
                             </div>
                           </td>
                           <td>
-                            <div>
-                              <i className="fas fa-calendar me-1"></i>
-                              {formatDate(appointment.appointment_date)}
-                              <br />
-                              <i className="fas fa-clock me-1"></i>
-                              {formatTime(appointment.appointment_time)}
-                            </div>
+                            {booking.booking_type === 'sale' ? (
+                              <div>
+                                <strong>{booking.total_property_price_formatted || 'N/A'}</strong>
+                                <br />
+                                <small className="text-muted">
+                                  Booking: {booking.booking_money_amount_formatted || 'N/A'}
+                                </small>
+                              </div>
+                            ) : (
+                              <div>
+                                <strong>{booking.monthly_rent_amount_formatted || 'N/A'}/mo</strong>
+                                <br />
+                                <small className="text-muted">
+                                  Advance: {booking.advance_deposit_amount_formatted || 'N/A'}
+                                </small>
+                              </div>
+                            )}
                           </td>
                           <td>
-                            {getStatusBadge(appointment.admin_status)}
+                            <strong>{booking.booking_date_formatted || 'N/A'}</strong>
                           </td>
                           <td>
-                            <div>
-                              <i className="fas fa-envelope me-1"></i>
-                              <a href={`mailto:${appointment.email}`}>
-                                {appointment.email}
-                              </a>
-                              <br />
-                              <i className="fas fa-phone me-1"></i>
-                              <a href={`tel:${appointment.phone}`}>
-                                {appointment.phone}
-                              </a>
-                            </div>
+                            <span className={`badge ${booking.status_class}`}>
+                              {booking.status || 'Unknown'}
+                            </span>
                           </td>
                           <td>
-                            <div className="btn-group" role="group">
-                              {appointment.admin_status === 'waiting' && (
+                            <small className="text-muted">
+                              {booking.created_at_formatted || 'N/A'}
+                            </small>
+                          </td>
+                          <td>
+                            <div className="btn-group btn-group-sm" role="group">
+                              {booking.status === 'pending' && (
                                 <>
                                   <button
-                                    onClick={() => updateAppointmentStatus(appointment.id, 'accepted')}
-                                    className="btn btn-success btn-sm"
-                                    title="Accept"
+                                    className="btn btn-success"
+                                    onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                                    title="Confirm Booking"
                                   >
                                     <i className="fas fa-check"></i>
                                   </button>
                                   <button
-                                    onClick={() => updateAppointmentStatus(appointment.id, 'rejected')}
-                                    className="btn btn-danger btn-sm"
-                                    title="Reject"
+                                    className="btn btn-danger"
+                                    onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                                    title="Cancel Booking"
                                   >
                                     <i className="fas fa-times"></i>
                                   </button>
                                 </>
                               )}
-                              {appointment.admin_status === 'accepted' && (
+                              {booking.status === 'confirmed' && (
                                 <button
-                                  onClick={() => updateAppointmentStatus(appointment.id, 'rejected')}
-                                  className="btn btn-outline-danger btn-sm"
-                                  title="Reject"
+                                  className="btn btn-info"
+                                  onClick={() => updateBookingStatus(booking.id, 'completed')}
+                                  title="Mark as Completed"
                                 >
-                                  <i className="fas fa-times"></i>
-                                </button>
-                              )}
-                              {appointment.admin_status === 'rejected' && (
-                                <button
-                                  onClick={() => updateAppointmentStatus(appointment.id, 'accepted')}
-                                  className="btn btn-outline-success btn-sm"
-                                  title="Accept"
-                                >
-                                  <i className="fas fa-check"></i>
+                                  <i className="fas fa-check-double"></i>
                                 </button>
                               )}
                               <button
-                                onClick={() => deleteAppointment(appointment.id)}
-                                className="btn btn-outline-danger btn-sm ms-1"
-                                title="Delete"
+                                className="btn btn-outline-primary"
+                                onClick={() => viewBookingDetails(booking)}
+                                title="View Details"
                               >
-                                <i className="fas fa-trash"></i>
+                                <i className="fas fa-eye"></i>
                               </button>
                             </div>
                           </td>
@@ -393,7 +284,101 @@ const Appointment = () => {
         </div>
       </div>
 
-      {/* Appointment Details Modal would go here if needed */}
+      {/* Booking Details Modal */}
+      {showModal && selectedBooking && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <span className={`badge ${selectedBooking.booking_type_class} me-2`}>
+                    {selectedBooking.booking_type === 'sale' ? 'Sale' : 'Rent'}
+                  </span>
+                  Booking Details #{selectedBooking.id}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <h6 className="fw-bold">Customer Information</h6>
+                    <p><strong>Name:</strong> {selectedBooking.customer_name}</p>
+                    <p><strong>Email:</strong> {selectedBooking.customer_email}</p>
+                    {selectedBooking.customer_phone && (
+                      <p><strong>Phone:</strong> {selectedBooking.customer_phone}</p>
+                    )}
+                  </div>
+                  <div className="col-md-6">
+                    <h6 className="fw-bold">Property Information</h6>
+                    <p><strong>Title:</strong> {selectedBooking.property_title}</p>
+                    <p><strong>Address:</strong> {selectedBooking.property_address}</p>
+                    <p><strong>Type:</strong> {selectedBooking.property_type}</p>
+                  </div>
+                </div>
+
+                {selectedBooking.booking_type === 'sale' ? (
+                  <div className="mt-4">
+                    <h6 className="fw-bold text-success">Sale Details</h6>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <p><strong>Total Price:</strong> {selectedBooking.total_property_price_formatted}</p>
+                        <p><strong>Booking Money:</strong> {selectedBooking.booking_money_amount_formatted}</p>
+                        <p><strong>Down Payment:</strong> {selectedBooking.down_payment_details_formatted || 'N/A'}</p>
+                      </div>
+                      <div className="col-md-6">
+                        <p><strong>Installment:</strong> {selectedBooking.installment_option || 'N/A'}</p>
+                        <p><strong>Registration Cost:</strong> {selectedBooking.registration_cost_responsibility || 'N/A'}</p>
+                        <p><strong>Handover Date:</strong> {selectedBooking.handover_date_formatted || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <h6 className="fw-bold text-info">Rental Details</h6>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <p><strong>Monthly Rent:</strong> {selectedBooking.monthly_rent_amount_formatted}</p>
+                        <p><strong>Advance Deposit:</strong> {selectedBooking.advance_deposit_amount_formatted}</p>
+                        <p><strong>Maintenance:</strong> {selectedBooking.maintenance_responsibility || 'N/A'}</p>
+                      </div>
+                      <div className="col-md-6">
+                        <p><strong>Emergency Contact:</strong> {selectedBooking.emergency_contact || 'N/A'}</p>
+                      </div>
+                    </div>
+                    {selectedBooking.security_deposit_details && (
+                      <p><strong>Security Deposit:</strong> {selectedBooking.security_deposit_details}</p>
+                    )}
+                    {selectedBooking.utility_bills_responsibility && (
+                      <p><strong>Utility Bills:</strong> {selectedBooking.utility_bills_responsibility}</p>
+                    )}
+                  </div>
+                )}
+
+                {selectedBooking.notes && (
+                  <div className="mt-4">
+                    <h6 className="fw-bold">Notes</h6>
+                    <p>{selectedBooking.notes}</p>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
