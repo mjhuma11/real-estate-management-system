@@ -90,7 +90,7 @@ const Layout = () => {
                                         </Link>
                                     </li>
                                     <li className="nav-item">
-                                        <Link className="nav-link fw-semibold position-relative" to="/cart">
+                                        <Link className="nav-link fw-semibold position-relative" to="/shopping-cart">
                                             <i className="fas fa-shopping-cart me-1"></i>Cart
                                             {getCartCount() > 0 && (
                                                 <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>

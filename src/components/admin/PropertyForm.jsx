@@ -6,7 +6,7 @@ const PropertyForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditing = !!id;
-    
+
     const [formData, setFormData] = useState({
         title: '',
         slug: '',
@@ -32,7 +32,7 @@ const PropertyForm = () => {
         image: '',
         created_by: ''
     });
-    
+
     const [locations, setLocations] = useState([]);
     const [propertyTypes, setPropertyTypes] = useState([]);
     const [amenities, setAmenities] = useState([]);
@@ -40,7 +40,7 @@ const PropertyForm = () => {
     const [selectedAmenities, setSelectedAmenities] = useState([]);
     const [selectedFeatures, setSelectedFeatures] = useState([]);
 
-    
+
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
@@ -62,7 +62,7 @@ const PropertyForm = () => {
         try {
             setInitialLoading(true);
             const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
-            
+
             const [locationsResponse, propertyTypesResponse, amenitiesResponse] = await Promise.all([
                 fetch(`${API_BASE_URL}/locations.php`),
                 fetch(`${API_BASE_URL}/property-types.php`),
@@ -90,7 +90,7 @@ const PropertyForm = () => {
             setLoading(true);
             const response = await fetch(`${config.API_URL}/get-property.php?id=${id}`);
             const data = await response.json();
-            
+
             if (data.success && data.data) {
                 const property = data.data;
                 setFormData({
@@ -118,7 +118,7 @@ const PropertyForm = () => {
                     image: property.image || '',
                     created_by: property.created_by || ''
                 });
-                
+
                 // Load existing amenities and features
                 setSelectedAmenities((property.amenities || []).map(id => parseInt(id)));
                 setSelectedFeatures((property.features || []).map(id => parseInt(id)));
@@ -135,22 +135,22 @@ const PropertyForm = () => {
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         let processedValue = type === 'checkbox' ? (checked ? 1 : 0) : value;
-        
+
         setFormData(prev => {
             const updated = {
                 ...prev,
                 [name]: processedValue
             };
-            
+
             // Auto-generate slug from title
             if (name === 'title') {
                 updated.slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             }
-            
+
             return updated;
         });
     };
-    
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -167,20 +167,20 @@ const PropertyForm = () => {
 
         try {
             let imageUrl = formData.image;
-            
+
             if (image) {
                 try {
                     const imageFormData = new FormData();
                     imageFormData.append('image', image);
                     imageFormData.append('type', 'properties');
-                    
+
                     const imageResponse = await fetch(`${config.API_URL}/upload-image.php`, {
                         method: 'POST',
                         body: imageFormData
                     });
-                    
+
                     const imageResult = await imageResponse.json();
-                    
+
                     if (imageResult.success) {
                         imageUrl = imageResult.data.url;
                     } else {
@@ -192,11 +192,11 @@ const PropertyForm = () => {
                     return;
                 }
             }
-            
-            const url = isEditing 
+
+            const url = isEditing
                 ? `${config.API_URL}/update-property.php`
                 : `${config.API_URL}/add-property.php`;
-            
+
             const requestBody = {
                 ...formData,
                 image: imageUrl,
@@ -204,13 +204,13 @@ const PropertyForm = () => {
                 features: selectedFeatures,
                 id: isEditing ? id : undefined
             };
-            
+
             Object.keys(requestBody).forEach(key => {
                 if (requestBody[key] === '' || requestBody[key] === null) {
                     requestBody[key] = null;
                 }
             });
-            
+
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -218,12 +218,12 @@ const PropertyForm = () => {
                 },
                 body: JSON.stringify(requestBody)
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
             }
-            
+
             const responseText = await response.text();
             let data;
             try {
@@ -234,7 +234,7 @@ const PropertyForm = () => {
                 setError('Invalid response from server. Please check the console for details.');
                 return;
             }
-            
+
             if (data.success) {
                 setSuccess(isEditing ? 'Property updated successfully!' : 'Property added successfully!');
                 // Notify other tabs/components (e.g., Home.jsx) to refresh featured properties
@@ -323,8 +323,8 @@ const PropertyForm = () => {
             <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 className="h2">{isEditing ? 'Edit Property' : 'Add New Property'}</h1>
                 <div className="btn-toolbar mb-2 mb-md-0">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         className="btn btn-secondary me-2"
                         onClick={() => navigate('/admin/properties')}
                     >
@@ -358,10 +358,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="title" className="form-label">Property Title *</label>
-                                <input 
-                                    type="text" 
-                                    className="form-control" 
-                                    id="title" 
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="title"
                                     name="title"
                                     value={formData.title || ''}
                                     onChange={handleInputChange}
@@ -370,10 +370,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="slug" className="form-label">Slug</label>
-                                <input 
-                                    type="text" 
-                                    className="form-control" 
-                                    id="slug" 
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="slug"
                                     name="slug"
                                     value={formData.slug || ''}
                                     onChange={handleInputChange}
@@ -382,9 +382,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="type" className="form-label">Type *</label>
-                                <select 
-                                    className="form-select" 
-                                    id="type" 
+                                <select
+                                    className="form-select"
+                                    id="type"
                                     name="type"
                                     value={formData.type || 'For Sale'}
                                     onChange={handleInputChange}
@@ -396,9 +396,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="property_type_id" className="form-label">Property Type</label>
-                                <select 
-                                    className="form-select" 
-                                    id="property_type_id" 
+                                <select
+                                    className="form-select"
+                                    id="property_type_id"
                                     name="property_type_id"
                                     value={formData.property_type_id || ''}
                                     onChange={handleInputChange}
@@ -411,9 +411,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-12 mb-3">
                                 <label htmlFor="description" className="form-label">Description</label>
-                                <textarea 
-                                    className="form-control" 
-                                    id="description" 
+                                <textarea
+                                    className="form-control"
+                                    id="description"
                                     name="description"
                                     value={formData.description || ''}
                                     onChange={handleInputChange}
@@ -423,10 +423,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-12 mb-3">
                                 <label htmlFor="image" className="form-label">Property Image</label>
-                                <input 
-                                    type="file" 
-                                    className="form-control" 
-                                    id="image" 
+                                <input
+                                    type="file"
+                                    className="form-control"
+                                    id="image"
                                     name="image"
                                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                                     onChange={handleImageChange}
@@ -437,18 +437,18 @@ const PropertyForm = () => {
                                 {imagePreview && (
                                     <div className="mt-3">
                                         <div className="d-flex align-items-start gap-3">
-                                            <img 
-                                                src={imagePreview} 
-                                                alt="Preview" 
-                                                style={{ maxWidth: '200px', maxHeight: '200px' }} 
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                style={{ maxWidth: '200px', maxHeight: '200px' }}
                                                 className="img-thumbnail"
                                             />
                                             <div>
                                                 <p className="mb-1"><strong>Selected Image:</strong></p>
                                                 <p className="mb-1">Name: {image?.name}</p>
                                                 <p className="mb-1">Size: {image ? (image.size / 1024 / 1024).toFixed(2) + ' MB' : ''}</p>
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     className="btn btn-sm btn-outline-danger"
                                                     onClick={() => {
                                                         setImage(null);
@@ -465,10 +465,10 @@ const PropertyForm = () => {
                                 {formData.image && !imagePreview && (
                                     <div className="mt-2">
                                         <p className="mb-1"><strong>Current Image:</strong></p>
-                                        <img 
-                                            src={`${config.API_URL.replace('/API/', '/')}${formData.image}`} 
-                                            alt="Current" 
-                                            style={{ maxWidth: '200px', maxHeight: '200px' }} 
+                                        <img
+                                            src={`${config.API_URL.replace('/API/', '/')}${formData.image}`}
+                                            alt="Current"
+                                            style={{ maxWidth: '200px', maxHeight: '200px' }}
                                             className="img-thumbnail"
                                             onError={(e) => {
                                                 e.target.style.display = 'none';
@@ -486,11 +486,11 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="price" className="form-label">Price</label>
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     step="0.01"
-                                    className="form-control" 
-                                    id="price" 
+                                    className="form-control"
+                                    id="price"
                                     name="price"
                                     value={formData.price || ''}
                                     onChange={handleInputChange}
@@ -499,11 +499,11 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="monthly_rent" className="form-label">Monthly Rent</label>
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     step="0.01"
-                                    className="form-control" 
-                                    id="monthly_rent" 
+                                    className="form-control"
+                                    id="monthly_rent"
                                     name="monthly_rent"
                                     value={formData.monthly_rent || ''}
                                     onChange={handleInputChange}
@@ -519,10 +519,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="bedrooms" className="form-label">Bedrooms</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="bedrooms" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="bedrooms"
                                     name="bedrooms"
                                     value={formData.bedrooms || ''}
                                     onChange={handleInputChange}
@@ -531,10 +531,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="bathrooms" className="form-label">Bathrooms</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="bathrooms" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="bathrooms"
                                     name="bathrooms"
                                     value={formData.bathrooms || ''}
                                     onChange={handleInputChange}
@@ -544,20 +544,20 @@ const PropertyForm = () => {
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="area" className="form-label">Area</label>
                                 <div className="input-group">
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         step="0.01"
-                                        className="form-control" 
-                                        id="area" 
+                                        className="form-control"
+                                        id="area"
                                         name="area"
                                         value={formData.area || ''}
                                         onChange={handleInputChange}
                                         min="0"
                                         placeholder="e.g., 1200.50"
                                     />
-                                    <select 
-                                        className="form-select" 
-                                        id="area_unit" 
+                                    <select
+                                        className="form-select"
+                                        id="area_unit"
                                         name="area_unit"
                                         value={formData.area_unit || 'sq_ft'}
                                         onChange={handleInputChange}
@@ -570,13 +570,13 @@ const PropertyForm = () => {
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="floor" className="form-label">Floor</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="floor" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="floor"
                                     name="floor"
                                     value={formData.floor || ''}
                                     onChange={handleInputChange}
@@ -585,10 +585,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="total_floors" className="form-label">Total Floors</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="total_floors" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="total_floors"
                                     name="total_floors"
                                     value={formData.total_floors || ''}
                                     onChange={handleInputChange}
@@ -597,9 +597,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="facing" className="form-label">Facing</label>
-                                <select 
-                                    className="form-select" 
-                                    id="facing" 
+                                <select
+                                    className="form-select"
+                                    id="facing"
                                     name="facing"
                                     value={formData.facing || ''}
                                     onChange={handleInputChange}
@@ -617,10 +617,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="parking" className="form-label">Parking Spaces</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="parking" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="parking"
                                     name="parking"
                                     value={formData.parking || 0}
                                     onChange={handleInputChange}
@@ -629,10 +629,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="balcony" className="form-label">Balcony</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="balcony" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="balcony"
                                     name="balcony"
                                     value={formData.balcony || 0}
                                     onChange={handleInputChange}
@@ -650,9 +650,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label htmlFor="location_reference" className="form-label">Location Reference</label>
-                                <select 
-                                    className="form-select" 
-                                    id="location_reference" 
+                                <select
+                                    className="form-select"
+                                    id="location_reference"
                                     name="location_reference"
                                     onChange={(e) => {
                                         // Auto-fill address with selected location
@@ -674,9 +674,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-12 mb-3">
                                 <label htmlFor="address" className="form-label">Full Address *</label>
-                                <textarea 
-                                    className="form-control" 
-                                    id="address" 
+                                <textarea
+                                    className="form-control"
+                                    id="address"
                                     name="address"
                                     value={formData.address || ''}
                                     onChange={handleInputChange}
@@ -694,10 +694,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="agent_id" className="form-label">Agent ID</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="agent_id" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="agent_id"
                                     name="agent_id"
                                     value={formData.agent_id || ''}
                                     onChange={handleInputChange}
@@ -706,10 +706,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="views" className="form-label">Views</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="views" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="views"
                                     name="views"
                                     value={formData.views || 0}
                                     onChange={handleInputChange}
@@ -719,10 +719,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="created_by" className="form-label">Created By</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    id="created_by" 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    id="created_by"
                                     name="created_by"
                                     value={formData.created_by || ''}
                                     onChange={handleInputChange}
@@ -743,9 +743,9 @@ const PropertyForm = () => {
                                         {amenities.map((amenity, index) => (
                                             <div key={`amenity-${amenity.id}-${index}`} className="col-md-4 col-sm-6 mb-2">
                                                 <div className="form-check">
-                                                    <input 
-                                                        className="form-check-input" 
-                                                        type="checkbox" 
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
                                                         id={`amenity_${amenity.id}`}
                                                         checked={selectedAmenities.includes(parseInt(amenity.id))}
                                                         onChange={(e) => {
@@ -786,9 +786,9 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <label htmlFor="status" className="form-label">Status</label>
-                                <select 
-                                    className="form-select" 
-                                    id="status" 
+                                <select
+                                    className="form-select"
+                                    id="status"
                                     name="status"
                                     value={formData.status || 'available'}
                                     onChange={handleInputChange}
@@ -801,10 +801,10 @@ const PropertyForm = () => {
                             </div>
                             <div className="col-md-4 mb-3">
                                 <div className="form-check mt-4">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="checkbox" 
-                                        id="featured" 
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id="featured"
                                         name="featured"
                                         checked={formData.featured === 1}
                                         onChange={handleInputChange}
@@ -819,8 +819,8 @@ const PropertyForm = () => {
                         {/* Submit Button */}
                         <div className="row">
                             <div className="col-12">
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     className="btn btn-primary btn-lg w-100"
                                     disabled={loading}
                                 >

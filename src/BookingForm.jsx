@@ -3,18 +3,24 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import AuthContext from './contexts/AuthContext';
 import { API_URL } from './config';
 import { useToast } from './components/common/Toast';
+import { useCart } from './contexts/CartContext';
 
 const BookingForm = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useContext(AuthContext);
   const { showSuccess, showError } = useToast();
+  const { addToCart, updateCartItemBookingForm, cartItems } = useCart();
 
   // Get URL parameters
   const propertyId = searchParams.get('property');
   const propertyTitle = searchParams.get('title');
   const propertyType = searchParams.get('type'); // 'For Sale' or 'For Rent'
+  const cartItemId = searchParams.get('cartItemId'); // If updating existing cart item
   const bookingType = propertyType === 'For Sale' ? 'sale' : 'rent';
+
+  // Check if we're updating an existing cart item
+  const existingCartItem = cartItemId ? cartItems.find(item => item.id === parseInt(cartItemId)) : null;
 
   const [property, setProperty] = useState(null);
   const [agents, setAgents] = useState([]);
@@ -60,6 +66,18 @@ const BookingForm = () => {
       return;
     }
     
+    // If updating existing cart item, pre-fill form with existing data
+    if (existingCartItem) {
+      setFormData(prev => ({
+        ...prev,
+        ...existingCartItem,
+        // Ensure these fields are properly set
+        user_id: user?.id || existingCartItem.user_id,
+        property_id: existingCartItem.property_id,
+        booking_type: existingCartItem.booking_type
+      }));
+    }
+    
     if (propertyId) {
       fetchPropertyDetails();
       // Try to fetch agents, but don't block the form if it fails
@@ -67,7 +85,7 @@ const BookingForm = () => {
         console.log('Agents API not available, form will work without agent selection');
       });
     }
-  }, [propertyId, isAuthenticated, user, navigate]);
+  }, [propertyId, isAuthenticated, user, navigate, existingCartItem]);
 
   const fetchPropertyDetails = async () => {
     try {
@@ -112,10 +130,28 @@ const BookingForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+      
+      // Auto-calculate down payment for sale bookings
+      if (bookingType === 'sale' && (name === 'total_property_price' || name === 'booking_money_amount')) {
+        const totalPrice = parseFloat(name === 'total_property_price' ? value : prev.total_property_price) || 0;
+        const bookingMoney = parseFloat(name === 'booking_money_amount' ? value : prev.booking_money_amount) || 0;
+        
+        if (totalPrice > 0 && bookingMoney > 0 && bookingMoney <= totalPrice) {
+          newData.down_payment_details = totalPrice - bookingMoney;
+        } else if (bookingMoney > totalPrice) {
+          // If booking money exceeds total price, reset down payment
+          newData.down_payment_details = 0;
+        }
+      }
+      
+      return newData;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -130,7 +166,9 @@ const BookingForm = () => {
         property_id: propertyId,
         booking_type: bookingType,
         booking_date: formData.booking_date,
-        notes: formData.notes
+        notes: formData.notes,
+        property_title: property.title,
+        property_address: property.address
       };
 
       if (bookingType === 'sale') {
@@ -153,58 +191,33 @@ const BookingForm = () => {
         // Removed emergency_contact field since it doesn't exist in the database
       }
 
-      const response = await fetch(`${API_URL}/create-booking.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData)
-      });
-
-      // Handle different HTTP status codes
-      if (response.status === 500) {
-        throw new Error('Server error (500). Please try again later or contact support.');
-      }
-
-      if (response.status === 404) {
-        throw new Error('API endpoint not found (404). Please check the API URL.');
-      }
-
-      // Try to get response text first for debugging
-      const responseText = await response.text();
-      
-      // Check if response is empty
-      if (!responseText) {
-        throw new Error(`Empty response from server (Status: ${response.status})`);
-      }
-
-      // Try to parse JSON
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (jsonError) {
-        console.error('JSON Parse Error:', jsonError);
-        console.error('Response Text:', responseText);
-        console.error('Response Status:', response.status);
-        console.error('Response Headers:', Object.fromEntries(response.headers.entries()));
-        throw new Error(`Invalid response format from server. Server returned: ${responseText.substring(0, 100)}...`);
-      }
-
-      if (result.success) {
+      if (existingCartItem) {
+        // Update existing cart item with booking form data
+        updateCartItemBookingForm(existingCartItem.id, submitData);
+        
         showSuccess(
           <div>
-            {`${bookingType === 'sale' ? 'Sale' : 'Rent'} booking submitted successfully! `}
-            <a href="/my-bookings" className="alert-link">View your bookings</a>
+            {`${bookingType === 'sale' ? 'Sale' : 'Rent'} booking form completed successfully! `}
+            <a href="/shopping-cart" className="alert-link">View your cart</a>
           </div>
         );
-        // Redirect to admin dashboard after successful booking
-        navigate('/admin');
       } else {
-        throw new Error(result.message || 'Failed to submit booking');
+        // Add new item to cart
+        addToCart(submitData);
+        
+        showSuccess(
+          <div>
+            {`${bookingType === 'sale' ? 'Sale' : 'Rent'} booking added to cart successfully! `}
+            <a href="/shopping-cart" className="alert-link">View your cart</a>
+          </div>
+        );
       }
+      
+      // Redirect to shopping cart page
+      navigate('/shopping-cart');
     } catch (error) {
       console.error('Booking submission error:', error);
-      showError(error.message || 'Failed to submit booking. Please try again.');
+      showError(error.message || 'Failed to add booking to cart. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -231,11 +244,24 @@ const BookingForm = () => {
           <div className="row">
             <div className="col-12">
               <h1 className="display-6 fw-bold mb-2">
-                {bookingType === 'sale' ? 'Property Purchase Booking' : 'Property Rental Booking'}
+                {existingCartItem ? 
+                  `${bookingType === 'sale' ? 'Update Purchase' : 'Update Rental'} Booking Form` :
+                  `${bookingType === 'sale' ? 'Property Purchase' : 'Property Rental'} Booking`
+                }
               </h1>
               <p className="lead mb-0">
-                {bookingType === 'sale' ? 'Complete your property purchase booking' : 'Complete your rental booking'}
+                {existingCartItem ? 
+                  'Complete your booking form details' :
+                  `${bookingType === 'sale' ? 'Complete your property purchase booking' : 'Complete your rental booking'}`
+                }
               </p>
+              {existingCartItem && (
+                <div className="mt-2">
+                  <span className="badge bg-warning text-dark">
+                    <i className="fas fa-edit me-1"></i>Updating Cart Item
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -358,12 +384,26 @@ const BookingForm = () => {
                             <input
                               type="number"
                               name="booking_money_amount"
-                              className="form-control"
+                              className={`form-control ${
+                                formData.booking_money_amount && formData.total_property_price && 
+                                parseFloat(formData.booking_money_amount) > parseFloat(formData.total_property_price) 
+                                ? 'is-invalid' : ''
+                              }`}
                               value={formData.booking_money_amount}
                               onChange={handleInputChange}
                               placeholder="Enter booking amount"
+                              max={formData.total_property_price}
                               required
                             />
+                            {formData.booking_money_amount && formData.total_property_price && 
+                             parseFloat(formData.booking_money_amount) > parseFloat(formData.total_property_price) && (
+                              <div className="invalid-feedback">
+                                Booking money cannot exceed total property price
+                              </div>
+                            )}
+                            <small className="text-muted">
+                              Maximum: ৳ {formData.total_property_price ? new Intl.NumberFormat('en-BD').format(formData.total_property_price) : '0'}
+                            </small>
                           </div>
                         </div>
 
@@ -385,15 +425,18 @@ const BookingForm = () => {
                             </select>
                           </div>
                           <div className="col-md-6">
-                            <label className="form-label">Down Payment Amount</label>
+                            <label className="form-label">Down Payment Amount (Auto-calculated)</label>
                             <input
                               type="number"
                               name="down_payment_details"
-                              className="form-control"
+                              className="form-control bg-light"
                               value={formData.down_payment_details}
-                              onChange={handleInputChange}
-                              placeholder="Enter down payment"
+                              readOnly
+                              placeholder="Will be calculated automatically"
                             />
+                            <small className="text-muted">
+                              Total Price - Booking Money = Down Payment
+                            </small>
                           </div>
                         </div>
 
@@ -482,6 +525,10 @@ const BookingForm = () => {
                               placeholder="Enter advance amount"
                               required
                             />
+                            <small className="text-muted">
+                              <i className="fas fa-info-circle me-1"></i>
+                              Typically 2 months advance deposit is required
+                            </small>
                           </div>
                         </div>
 
@@ -574,12 +621,59 @@ const BookingForm = () => {
                     </div>
 
                     {bookingType === 'sale' && formData.total_property_price && (
-                      <div className="mb-3">
-                        <strong>Total Price:</strong>
-                        <p className="mb-0 text-success fw-bold">
-                          ৳ {new Intl.NumberFormat('en-BD').format(formData.total_property_price)}
-                        </p>
-                      </div>
+                      <>
+                        <div className="mb-3">
+                          <strong>Total Property Price:</strong>
+                          <p className="mb-0 text-success fw-bold">
+                            ৳ {new Intl.NumberFormat('en-BD').format(formData.total_property_price)}
+                          </p>
+                        </div>
+                        
+                        {formData.booking_money_amount && (
+                          <div className="mb-3">
+                            <strong>Booking Money (To Pay Now):</strong>
+                            <p className="mb-0 text-primary fw-bold">
+                              ৳ {new Intl.NumberFormat('en-BD').format(formData.booking_money_amount)}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {formData.down_payment_details && (
+                          <div className="mb-3">
+                            <strong>Remaining Down Payment:</strong>
+                            <p className="mb-0 text-warning fw-bold">
+                              ৳ {new Intl.NumberFormat('en-BD').format(formData.down_payment_details)}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {formData.booking_money_amount && formData.down_payment_details && (
+                          <div className="mb-3 p-3 bg-light rounded">
+                            <strong>Payment Breakdown:</strong>
+                            <div className="mt-2">
+                              <div className="d-flex justify-content-between">
+                                <span>Now (Booking):</span>
+                                <span className="fw-bold text-primary">
+                                  ৳ {new Intl.NumberFormat('en-BD').format(formData.booking_money_amount)}
+                                </span>
+                              </div>
+                              <div className="d-flex justify-content-between">
+                                <span>Later (Down Payment):</span>
+                                <span className="fw-bold text-warning">
+                                  ৳ {new Intl.NumberFormat('en-BD').format(formData.down_payment_details)}
+                                </span>
+                              </div>
+                              <hr className="my-2" />
+                              <div className="d-flex justify-content-between">
+                                <span><strong>Total:</strong></span>
+                                <span className="fw-bold text-success">
+                                  ৳ {new Intl.NumberFormat('en-BD').format(formData.total_property_price)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {bookingType === 'rent' && formData.monthly_rent_amount && (
@@ -600,12 +694,12 @@ const BookingForm = () => {
                         {loading ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Submitting...
+                            {existingCartItem ? 'Updating...' : 'Adding to Cart...'}
                           </>
                         ) : (
                           <>
-                            <i className="fas fa-check me-2"></i>
-                            Submit {bookingType === 'sale' ? 'Purchase' : 'Rental'} Booking
+                            <i className={`fas ${existingCartItem ? 'fa-check' : 'fa-shopping-cart'} me-2`}></i>
+                            {existingCartItem ? 'Complete Booking Form' : 'Add to Cart'}
                           </>
                         )}
                       </button>

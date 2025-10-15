@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
 import { useFavourites } from './contexts/FavouritesContext';
+import { useCart } from './contexts/CartContext';
 import AuthContext from './contexts/AuthContext';
 import './styles/favourites.css';
 import './styles/property-details.css';
@@ -9,6 +10,7 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toggleFavourite, isFavourite } = useFavourites();
+  const { addToCart, getCartCount } = useCart();
   const { isAuthenticated, isCustomer } = useContext(AuthContext);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,36 @@ const PropertyDetails = () => {
       return;
     }
     navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);
+  };
+
+  const handleAddToCart = (property) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    if (!isCustomer()) {
+      alert('Only customers can add properties to cart');
+      return;
+    }
+
+    // Create cart item data
+    const cartItemData = {
+      property_id: property.id,
+      property_title: property.title,
+      property_address: property.location_name || property.address,
+      booking_type: property.type === 'For Sale' ? 'sale' : 'rent',
+      booking_date: new Date().toISOString().split('T')[0],
+      total_property_price: property.price || 0,
+      monthly_rent_amount: property.monthly_rent || 0,
+      down_payment_details: property.type === 'For Sale' ? Math.round((property.price || 0) * 1) : 0, // 20% down payment
+      advance_deposit_amount: property.type === 'For Rent' ? (property.monthly_rent || 0) * 2 : 0, // 2 months advance
+      booking_money_amount: property.type === 'For Sale' ? Math.round((property.price || 0) * 1) : 0, // 10% booking money
+      user_id: 1 // This should come from auth context
+    };
+
+    const itemId = addToCart(cartItemData);
+    alert(`Property added to cart! Cart now has ${getCartCount()} items.`);
+    console.log('🛒 Added to cart:', cartItemData, 'Item ID:', itemId);
   };
 
   if (loading) {
@@ -413,6 +445,13 @@ const PropertyDetails = () => {
 
                   {/* Action Buttons */}
                   <div className="d-grid gap-2">
+                    <button
+                      onClick={() => handleAddToCart(property)}
+                      className="btn btn-warning btn-lg"
+                    >
+                      <i className="fas fa-shopping-cart me-2"></i>Add to Cart
+                    </button>
+                    
                     <button
                       onClick={() => handleBookingClick(property)}
                       className={`btn btn-lg ${property.type === 'For Sale' ? 'btn-primary' : 'btn-success'}`}

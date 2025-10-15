@@ -4,7 +4,7 @@ import { useFavourites } from './contexts/FavouritesContext';
 import AuthContext from './contexts/AuthContext';
 import './styles/favourites.css';
 import PropertySearch from './components/PropertySearch';
-
+import PropertyCard from './components/PropertyCard';
 
 const Properties = () => {
   const { toggleFavourite, isFavourite } = useFavourites();
@@ -339,126 +339,11 @@ const Properties = () => {
           </div>
 
           <div className="row g-4">
-            {loading ? (
-              <div className="col-12 text-center py-5">
-                <div className="spinner-border" style={{ color: '#6bc20e' }} role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="mt-3">Loading properties...</p>
+            {filteredProperties.map((property) => (
+              <div key={property.id} className="col-lg-4 col-md-6">
+                <PropertyCard property={property} />
               </div>
-            ) : error ? (
-              <div className="col-12 text-center py-5">
-                <div className="text-danger">
-                  <i className="fas fa-exclamation-triangle fa-3x mb-3"></i>
-                  <h4>Error Loading Properties</h4>
-                  <p>{error}</p>
-                  <button className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }} onClick={fetchProperties}>
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            ) : filteredProperties.length === 0 ? (
-              <div className="col-12 text-center py-5">
-                <div className="text-muted">
-                  <i className="fas fa-search fa-3x mb-3"></i>
-                  <h4>No properties found</h4>
-                  <p>Try adjusting your search filters to find more properties.</p>
-                  <button className="btn" style={{ backgroundColor: '#6bc20e', borderColor: '#6bc20e', color: 'white' }} onClick={clearFilters}>
-                    Clear All Filters
-                  </button>
-                </div>
-              </div>
-            ) : (
-              filteredProperties.map(property => (
-                <div key={property.id} className="col-lg-4 col-md-6">
-                  <div className="card h-100 shadow-sm">
-                    <div className="position-relative">
-                      {property.images && property.images.length > 0 ? (
-                        <img
-                          src={property.images[0]}
-                          alt={property.title}
-                          className="img-fluid w-100"
-                          style={{ height: '250px', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div
-                          className="d-flex align-items-center justify-content-center bg-light"
-                          style={{ height: '250px' }}
-                        >
-                          <div className="text-center text-muted">
-                            <i className="fas fa-image fa-3x mb-2"></i>
-                            <p className="mb-0">No Image</p>
-                          </div>
-                        </div>
-                      )}
-                      <span className={`badge ${property.type === 'For Sale' ? '' : 'bg-success'} position-absolute top-0 start-0 m-3`} style={property.type === 'For Sale' ? { backgroundColor: '#6bc20e' } : {}}>
-                        {property.type}
-                      </span>
-                      {property.featured == 1 && (
-                        <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                      )}
-                      <div className="position-absolute bottom-0 end-0 m-3">
-                        <button
-                          className={`btn btn-sm rounded-circle me-2 favourite-btn ${isFavourite(property.id) ? 'btn-danger text-white favourited' : 'btn-light'}`}
-                          onClick={() => handleFavouriteClick(property)}
-                          title={isFavourite(property.id) ? 'Remove from favourites' : 'Add to favourites'}
-                        >
-                          <i className={`fas fa-heart ${isFavourite(property.id) ? 'text-white' : 'text-muted'}`}></i>
-                        </button>
-                        <button className="btn btn-light btn-sm rounded-circle">
-                          <i className="fas fa-share-alt"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="card-body">
-                      <h5 className="card-title fw-bold">{property.title}</h5>
-                      <p className="text-muted mb-2">
-                        <i className="fas fa-map-marker-alt me-2"></i>{property.location_name || property.address}
-                      </p>
-                      <div className="row g-2 mb-3">
-                        {property.bedrooms && (
-                          <div className="col-4">
-                            <small className="text-muted">
-                              <i className="fas fa-bed me-1"></i>{property.bedrooms} bed
-                            </small>
-                          </div>
-                        )}
-                        <div className="col-4">
-                          <small className="text-muted">
-                            <i className="fas fa-bath me-1"></i>{property.bathrooms} bath
-                          </small>
-                        </div>
-                        <div className="col-4">
-                          <small className="text-muted">
-                            <i className="fas fa-ruler-combined me-1"></i>{property.area} sq ft
-                          </small>
-                        </div>
-                      </div>
-                      <h6 className="fw-bold mb-3" style={{ color: '#6bc20e' }}>
-                        {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
-                      </h6>
-                      <div className="d-grid gap-2">
-                        <Link
-                          to={`/property/${property.id}`}
-                          className="btn btn-sm"
-                          style={{ backgroundColor: '#adff2f', borderColor: '#adff2f', color: '#000' }}
-                        >
-                          View Details
-                        </Link>
-                        <button
-                          onClick={() => handleBookingClick(property)}
-                          className="btn btn-sm"
-                          style={{ backgroundColor: '#adff2f', borderColor: '#adff2f', color: '#000' }}
-                        >
-                          <i className="fas fa-calendar-check me-1"></i>
-                          Book Now
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
 
           {/* Pagination */}

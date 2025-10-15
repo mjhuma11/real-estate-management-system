@@ -1,6 +1,51 @@
 import { Link } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
+import { useContext } from 'react';
+import AuthContext from '../contexts/AuthContext';
 
 const PropertyCard = ({ property }) => {
+  const { addToCart } = useCart();
+  const { isAuthenticated, isCustomer } = useContext(AuthContext);
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated()) {
+      alert('Please login to add properties to cart');
+      return;
+    }
+    
+    if (!isCustomer()) {
+      alert('Only customers can add properties to cart');
+      return;
+    }
+
+    // Add property to cart with default booking data
+    const bookingType = property.type === 'For Sale' ? 'sale' : 'rent';
+    
+    const cartItem = {
+      property_id: property.id,
+      property_title: property.title,
+      property_address: property.address,
+      property_type: property.type,
+      booking_type: bookingType,
+      booking_date: new Date().toISOString().split('T')[0],
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...(bookingType === 'sale' ? {
+        total_property_price: property.price || 0,
+        booking_money_amount: property.price ? Math.round(property.price * 0.1) : 0, // 10% of price
+        down_payment_details: property.price ? Math.round(property.price * 0.2) : 0, // 20% of price
+        installment_option: ''
+      } : {
+        monthly_rent_amount: property.monthly_rent || 0,
+        advance_deposit_amount: property.monthly_rent ? property.monthly_rent * 2 : 0, // 2 months rent
+        rental_duration: 12 // 12 months default
+      })
+    };
+
+    addToCart(cartItem);
+    alert('Property added to cart successfully!');
+  };
+
   return (
     <div className="card h-100 shadow-sm">
       <div className="position-relative">
@@ -56,12 +101,20 @@ const PropertyCard = ({ property }) => {
           <h6 className="text-primary fw-bold mb-0">
             {property.price_formatted || `৳ ${new Intl.NumberFormat('en-BD').format(property.price)}`}
           </h6>
-          <Link
-            to={`/property/${property.id}`}
-            className="btn btn-outline-primary btn-sm"
-          >
-            View Details
-          </Link>
+          <div className="d-flex gap-2">
+            <button 
+              className="btn btn-outline-success btn-sm"
+              onClick={handleAddToCart}
+            >
+              <i className="fas fa-shopping-cart me-1"></i>Add to Cart
+            </button>
+            <Link
+              to={`/property/${property.id}`}
+              className="btn btn-outline-primary btn-sm"
+            >
+              View Details
+            </Link>
+          </div>
         </div>
       </div>
     </div>

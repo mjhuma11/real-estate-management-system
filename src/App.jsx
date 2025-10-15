@@ -10,6 +10,8 @@ import PropertyDetails from "./PropertyDetails";
 import BookingForm from "./BookingForm";
 import Favourites from "./Favourites";
 import Cart from "./Cart";
+import ShoppingCart from "./ShoppingCart";
+import Checkout from "./Checkout";
 import Contact from "./Contact";
 import NoPage from "./NoPage";
 import Login from "./Login";
@@ -60,6 +62,8 @@ const App = () => {
               <Route path="booking" element={<BookingForm />} />
               <Route path="favourites" element={<Favourites />} />
               <Route path="cart" element={<Cart />} />
+              <Route path="shopping-cart" element={<ShoppingCart />} />
+              <Route path="checkout" element={<Checkout />} />
               <Route path="my-bookings" element={<UserBookings />} />
               <Route path="profile" element={<Profile />} />
               <Route path="contact" element={<Contact />} />

@@ -4,6 +4,7 @@ import React, { useEffect, useState, useContext } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthContext from './contexts/AuthContext';
+import PropertyCard from './components/PropertyCard';
 
 const Home = () => {
   const [featuredProperties, setFeaturedProperties] = useState([]);
@@ -214,45 +215,7 @@ const Home = () => {
             ) : featuredProperties.length > 0 ? (
               featuredProperties.slice(0, 15).map((property, index) => (
                 <div key={property.id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={`${(index % 3) * 100}`}>
-                  <div 
-                    className="card h-100 shadow-sm" 
-                    onClick={() => navigate(`/property/${property.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="position-relative">
-                      <img
-                        src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"}
-                        alt={property.title}
-                        className="img-fluid w-100"
-                        style={{ height: '250px', objectFit: 'cover' }}
-                      />
-                      <span className={`badge ${property.type === 'For Sale' ? '' : 'bg-success'} position-absolute top-0 start-0 m-3`} style={property.type === 'For Sale' ? { backgroundColor: '#6bc20e' } : {}}>
-                        {property.type}
-                      </span>
-                      <span className="badge bg-warning position-absolute top-0 end-0 m-3">Featured</span>
-                    </div>
-                    <div className="card-body">
-                      <h5 className="card-title fw-bold">{property.title}</h5>
-                      <p className="text-muted mb-2">
-                        <i className="fas fa-map-marker-alt me-2"></i>
-                        {property.location_name || property.address}
-                      </p>
-                      <p className="card-text">{property.description ? property.description.substring(0, 80) + '...' : 'Modern property with premium amenities.'}</p>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="fw-bold mb-0" style={{ color: '#6bc20e' }}>
-                          {property.type === 'For Sale'
-                            ? (property.price ? `৳ ${new Intl.NumberFormat('en-IN').format(property.price)}` : 'Price on request')
-                            : (property.monthly_rent ? `৳ ${new Intl.NumberFormat('en-IN').format(property.monthly_rent)}/month` : 'Rent on request')
-                          }
-                        </h6>
-                        <small className="text-muted">
-                          {property.bedrooms ? `${property.bedrooms} bed` : ''}
-                          {property.bedrooms && property.bathrooms ? ' • ' : ''}
-                          {property.bathrooms ? `${property.bathrooms} bath` : ''}
-                        </small>
-                      </div>
-                    </div>
-                  </div>
+                  <PropertyCard property={property} />
                 </div>
               ))
             ) : (

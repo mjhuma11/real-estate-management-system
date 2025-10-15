@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2025 at 06:57 PM
+-- Generation Time: Oct 12, 2025 at 09:36 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -134,7 +134,42 @@ CREATE TABLE `appointments` (
 INSERT INTO `appointments` (`id`, `user_id`, `agent_id`, `property_id`, `booking_type`, `total_property_price`, `booking_money_amount`, `installment_option`, `down_payment_details`, `registration_cost_responsibility`, `handover_date`, `developer_info`, `previous_ownership_info`, `monthly_rent_amount`, `advance_deposit_amount`, `security_deposit_details`, `maintenance_responsibility`, `utility_bills_responsibility`, `emergency_contact`, `family_members_count`, `booking_date`, `status`, `notes`, `created_at`, `updated_at`) VALUES
 (2, 9, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 12345.00, NULL, 'Tenant', NULL, NULL, NULL, '2025-10-06', 'confirmed', '', '2025-10-06 15:08:53', '2025-10-06 15:32:14'),
 (3, 9, NULL, 16, 'sale', 55500000.00, 5500000.00, '24_months', 500000000.00, 'Buyer', '2026-10-06', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-06', 'confirmed', 'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s', '2025-10-06 15:23:53', '2025-10-06 15:32:10'),
-(4, 6, NULL, 14, 'sale', 850000000.00, 50000000.00, NULL, 800000000.00, 'Buyer', '2027-10-13', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-06', 'confirmed', 'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s', '2025-10-06 15:25:56', '2025-10-06 15:31:50');
+(4, 6, NULL, 14, 'sale', 850000000.00, 50000000.00, NULL, 800000000.00, 'Buyer', '2027-10-13', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', '23,Gulsan, Dhaka, Bangladesh\n\n+880-1754-567890', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-06', 'confirmed', 'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s', '2025-10-06 15:25:56', '2025-10-06 15:31:50'),
+(5, 9, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 20000.00, NULL, 'Owner', NULL, NULL, NULL, '2025-10-07', 'confirmed', '', '2025-10-07 16:12:37', '2025-10-07 16:15:13'),
+(6, 9, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 60000.00, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 16:49:39', '2025-10-07 16:49:39'),
+(7, 9, NULL, 14, 'sale', 850000000.00, 50000000.00, '12_months', 800000000.00, 'Buyer', '2026-06-16', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 16:57:02', '2025-10-07 16:57:02'),
+(8, 9, NULL, 7, 'sale', 75000000.00, 5000000.00, '24_months', 70000000.00, 'Buyer', '2025-06-04', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 17:28:39', '2025-10-07 17:28:39'),
+(9, 9, NULL, 16, 'sale', 55500000.00, 5500000.00, NULL, 50000000.00, 'Buyer', '2026-11-28', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 17:47:27', '2025-10-07 17:47:27'),
+(10, 9, NULL, 10, 'sale', 200000.00, 34546.00, NULL, 4535646.00, 'Buyer', '2026-07-29', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 17:51:00', '2025-10-07 17:51:00'),
+(11, 9, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 6774.00, NULL, 'Tenant', NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 18:03:06', '2025-10-07 18:03:06'),
+(12, 9, NULL, 10, 'sale', 200000.00, 200000.00, NULL, NULL, 'Buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 18:51:16', '2025-10-07 18:51:16'),
+(13, 6, NULL, 16, 'sale', 55500000.00, 56767.00, NULL, NULL, 'Buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-07', 'pending', '', '2025-10-07 20:12:21', '2025-10-07 20:12:21'),
+(14, 6, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 20000.00, 'hhhhhhhhhhb', 'Shared', 'owner', NULL, NULL, '2025-10-12', 'pending', 'gfvghghv', '2025-10-12 14:11:26', '2025-10-12 14:11:26'),
+(15, 6, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 5433.00, NULL, 'Tenant', NULL, NULL, NULL, '2025-10-12', 'pending', '', '2025-10-12 14:12:23', '2025-10-12 14:12:23'),
+(16, 6, NULL, 17, 'rent', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 30000.00, 19999.00, 'tut', 'Owner', 'tuyt', NULL, NULL, '2025-10-12', 'pending', 'tut', '2025-10-12 14:38:21', '2025-10-12 14:38:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `billing_information`
+--
+
+CREATE TABLE `billing_information` (
+  `id` int(11) NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `address` text NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `state` varchar(100) NOT NULL,
+  `zip_code` varchar(20) NOT NULL,
+  `country` varchar(100) NOT NULL DEFAULT 'Bangladesh',
+  `is_default` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -204,6 +239,45 @@ INSERT INTO `locations` (`id`, `name`, `type`, `created_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `billing_id` int(11) NOT NULL,
+  `payment_method_id` int(11) DEFAULT NULL,
+  `order_number` varchar(50) NOT NULL,
+  `total_amount` decimal(15,2) NOT NULL,
+  `status` enum('pending','confirmed','processing','completed','cancelled') NOT NULL DEFAULT 'pending',
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `property_id` int(11) DEFAULT NULL,
+  `appointment_id` bigint(20) DEFAULT NULL,
+  `item_type` enum('property_booking','property_rental') NOT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `item_description` text DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(15,2) NOT NULL,
+  `total_price` decimal(15,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `payment_invoices`
 --
 
@@ -232,6 +306,24 @@ CREATE TABLE `payment_invoices` (
   `notes` text DEFAULT NULL,
   `terms_conditions` text DEFAULT NULL,
   `created_by` int(10) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `payment_methods`
+--
+
+CREATE TABLE `payment_methods` (
+  `id` int(11) NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `payment_type` enum('cash','card','bank_transfer') NOT NULL,
+  `card_number_last4` varchar(4) DEFAULT NULL,
+  `card_expiry` varchar(10) DEFAULT NULL,
+  `bank_name` varchar(100) DEFAULT NULL,
+  `is_default` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -277,6 +369,23 @@ CREATE TABLE `payment_plans` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `payment_plans`
+--
+
+INSERT INTO `payment_plans` (`id`, `appointment_id`, `property_id`, `user_id`, `booking_type`, `total_property_price`, `down_payment_amount`, `down_payment_paid`, `down_payment_date`, `installment_amount`, `installment_frequency`, `total_installments`, `installments_paid`, `next_installment_date`, `monthly_rent_amount`, `advance_deposit_amount`, `security_deposit_amount`, `advance_paid`, `advance_payment_date`, `rent_start_date`, `rent_end_date`, `next_rent_due_date`, `total_amount_paid`, `total_amount_due`, `payment_status`, `plan_status`, `registration_cost`, `registration_paid`, `maintenance_charge`, `utility_responsibility`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 6, 17, 9, 'rent', NULL, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, 30000.00, 60000.00, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 16:49:39', '2025-10-07 16:49:39'),
+(2, 7, 14, 9, 'sale', 850000000.00, 800000000.00, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 16:57:03', '2025-10-07 16:57:03'),
+(3, 8, 7, 9, 'sale', 75000000.00, 70000000.00, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 17:28:39', '2025-10-07 17:28:39'),
+(4, 9, 16, 9, 'sale', 55500000.00, 50000000.00, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 17:47:27', '2025-10-07 17:47:27'),
+(5, 10, 10, 9, 'sale', 200000.00, 4535646.00, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 17:51:00', '2025-10-07 17:51:00'),
+(6, 11, 17, 9, 'rent', NULL, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, 30000.00, 6774.00, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 18:03:06', '2025-10-07 18:03:06'),
+(7, 12, 10, 9, 'sale', 200000.00, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 18:51:16', '2025-10-07 18:51:16'),
+(8, 13, 16, 6, 'sale', 55500000.00, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-07 20:12:22', '2025-10-07 20:12:22'),
+(9, 14, 17, 6, 'rent', NULL, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, 30000.00, 20000.00, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, 'gfvghghv', '2025-10-12 14:11:27', '2025-10-12 14:11:27'),
+(10, 15, 17, 6, 'rent', NULL, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, 30000.00, 5433.00, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, '', '2025-10-12 14:12:23', '2025-10-12 14:12:23'),
+(11, 16, 17, 6, 'rent', NULL, NULL, 0, NULL, NULL, 'monthly', NULL, 0, NULL, 30000.00, 19999.00, NULL, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 'pending', 'active', NULL, 0, NULL, NULL, 'tut', '2025-10-12 14:38:21', '2025-10-12 14:38:21');
 
 -- --------------------------------------------------------
 
@@ -629,6 +738,25 @@ CREATE TABLE `settings` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sslcommerz_transactions`
+--
+
+CREATE TABLE `sslcommerz_transactions` (
+  `id` int(11) NOT NULL,
+  `transaction_id` varchar(255) NOT NULL,
+  `payment_plan_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `amount` decimal(15,2) NOT NULL,
+  `status` enum('initiated','successful','failed','cancelled') DEFAULT 'initiated',
+  `gateway_url` varchar(500) DEFAULT NULL,
+  `error_message` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -692,6 +820,13 @@ ALTER TABLE `appointments`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `billing_information`
+--
+ALTER TABLE `billing_information`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `installment_schedules`
 --
 ALTER TABLE `installment_schedules`
@@ -709,6 +844,23 @@ ALTER TABLE `locations`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `order_number` (`order_number`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `billing_id` (`billing_id`),
+  ADD KEY `payment_method_id` (`payment_method_id`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
 -- Indexes for table `payment_invoices`
 --
 ALTER TABLE `payment_invoices`
@@ -718,6 +870,13 @@ ALTER TABLE `payment_invoices`
   ADD KEY `appointment_id` (`appointment_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `invoice_status` (`invoice_status`);
+
+--
+-- Indexes for table `payment_methods`
+--
+ALTER TABLE `payment_methods`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `payment_plans`
@@ -809,6 +968,21 @@ ALTER TABLE `rent_schedules`
   ADD KEY `status` (`status`);
 
 --
+-- Indexes for table `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `sslcommerz_transactions`
+--
+ALTER TABLE `sslcommerz_transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `transaction_id` (`transaction_id`),
+  ADD KEY `payment_plan_id` (`payment_plan_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -828,7 +1002,13 @@ ALTER TABLE `amenities`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `billing_information`
+--
+ALTER TABLE `billing_information`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `installment_schedules`
@@ -843,16 +1023,34 @@ ALTER TABLE `locations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `payment_invoices`
 --
 ALTER TABLE `payment_invoices`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `payment_methods`
+--
+ALTER TABLE `payment_methods`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `payment_plans`
 --
 ALTER TABLE `payment_plans`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `payment_refunds`
@@ -909,6 +1107,18 @@ ALTER TABLE `rent_schedules`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `sslcommerz_transactions`
+--
+ALTER TABLE `sslcommerz_transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -919,10 +1129,43 @@ ALTER TABLE `users`
 --
 
 --
+-- Constraints for table `billing_information`
+--
+ALTER TABLE `billing_information`
+  ADD CONSTRAINT `billing_information_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`billing_id`) REFERENCES `billing_information` (`id`),
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`id`);
+
+--
+-- Constraints for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `payment_methods`
+--
+ALTER TABLE `payment_methods`
+  ADD CONSTRAINT `payment_methods_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `property_images`
 --
 ALTER TABLE `property_images`
   ADD CONSTRAINT `fk_property_images_property_id` FOREIGN KEY (`property_id`) REFERENCES `properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `sslcommerz_transactions`
+--
+ALTER TABLE `sslcommerz_transactions`
+  ADD CONSTRAINT `sslcommerz_transactions_ibfk_1` FOREIGN KEY (`payment_plan_id`) REFERENCES `payment_plans` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `sslcommerz_transactions_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

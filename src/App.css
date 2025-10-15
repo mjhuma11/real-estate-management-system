@@ -1,5 +1,8 @@
 /* Custom styles for NETRO Real Estate */
 
+/* Import Easy Payment Modal styles */
+@import './components/EasyPaymentModal.css';
+
 /* Global Styles */
 :root {
   --primary-color: #007bff;

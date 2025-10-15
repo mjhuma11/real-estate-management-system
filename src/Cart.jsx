@@ -160,9 +160,14 @@ const Cart = () => {
                 <p className="text-muted mb-4">
                   You haven't made any property bookings yet. Browse our properties and make your first booking!
                 </p>
-                <Link to="/properties" className="btn btn-primary">
-                  <i className="fas fa-search me-2"></i>Browse Properties
-                </Link>
+                <div className="d-flex justify-content-center gap-3">
+                  <Link to="/properties" className="btn btn-primary">
+                    <i className="fas fa-search me-2"></i>Browse Properties
+                  </Link>
+                  <Link to="/shopping-cart" className="btn btn-success">
+                    <i className="fas fa-shopping-cart me-2"></i>View Shopping Cart
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -192,6 +197,23 @@ const Cart = () => {
               <span className="badge bg-danger fs-6">
                 <i className="fas fa-times me-1"></i>Cancelled: {counts.cancelled}
               </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="alert alert-info">
+            <div className="d-flex align-items-center">
+              <i className="fas fa-info-circle fa-2x me-3"></i>
+              <div>
+                <h5 className="mb-1">This page shows your confirmed bookings</h5>
+                <p className="mb-0">
+                  To view properties you've added to your shopping cart, visit the 
+                  <Link to="/shopping-cart" className="alert-link ms-1">Shopping Cart</Link>.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -350,6 +372,9 @@ const Cart = () => {
         <div className="col-12 text-center">
           <Link to="/properties" className="btn btn-primary me-3">
             <i className="fas fa-plus me-2"></i>Make Another Booking
+          </Link>
+          <Link to="/shopping-cart" className="btn btn-success me-3">
+            <i className="fas fa-shopping-cart me-2"></i>View Shopping Cart
           </Link>
           <Link to="/contact" className="btn btn-outline-primary">
             <i className="fas fa-phone me-2"></i>Contact Us
