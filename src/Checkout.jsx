@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from './contexts/CartContext';
 import AuthContext from './contexts/AuthContext';
-import EasyPaymentModal from './components/EasyPaymentModal';
 
 const Checkout = () => {
   const { cartItems, clearCart } = useCart();
@@ -24,7 +23,6 @@ const Checkout = () => {
   // Removed tab state since we're using a single page layout
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Initialize selected items and user info
   useEffect(() => {
@@ -125,8 +123,72 @@ const Checkout = () => {
       return;
     }
 
-    // Show the Easy Payment Modal
-    setShowPaymentModal(true);
+    // Process payment through your API
+    setProcessing(true);
+    
+    try {
+      const paymentData = preparePaymentData();
+      const paymentPayload = {
+        ...paymentData,
+        amount: totals.subtotal
+      };
+
+      console.log('Sending payment data:', paymentPayload);
+
+      // Call your easycheckout API
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      const apiUrl = `${API_BASE_URL}/easycheckout.php`;
+      
+      console.log('Calling API:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentPayload)
+      });
+
+      console.log('API Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('API Response text:', responseText);
+      
+      // Check if response starts with HTML (PHP error)
+      if (responseText.trim().startsWith('<?php') || responseText.trim().startsWith('<')) {
+        console.error('API returned HTML instead of JSON:', responseText.substring(0, 200));
+        throw new Error('Server configuration error. Please check API endpoint.');
+      }
+
+      // Try to parse JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Parsed API result:', result);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', responseText.substring(0, 200));
+        throw new Error('Invalid response format from server');
+      }
+
+      if (result.status === 'success') {
+        console.log('Redirecting to:', result.data);
+        // Redirect to SSL Commerce gateway
+        window.location.href = result.data;
+      } else {
+        console.error('Payment failed:', result);
+        alert('Payment failed: ' + (result.message || 'Unknown error'));
+      }
+
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment failed: ' + error.message);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   // Prepare payment data for SSL Commerce
@@ -178,22 +240,7 @@ const Checkout = () => {
     };
   };
 
-  // Handle payment success
-  const handlePaymentSuccess = (result) => {
-    console.log('Payment successful:', result);
 
-    // Show success message
-    setOrderPlaced(true);
-    setShowPaymentModal(false);
-
-    // Clear the cart
-    clearCart();
-  };
-
-  // Handle payment modal close
-  const handlePaymentModalClose = () => {
-    setShowPaymentModal(false);
-  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -608,18 +655,7 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Easy Payment Modal */}
-      {showPaymentModal && (
-        <EasyPaymentModal
-          isOpen={showPaymentModal}
-          onClose={handlePaymentModalClose}
-          amount={totals.subtotal}
-          currency="BDT"
-          merchantName="NETRO Real Estate"
-          paymentData={preparePaymentData()}
-          onPaymentSubmit={handlePaymentSuccess}
-        />
-      )}
+
     </div>
   );
 };

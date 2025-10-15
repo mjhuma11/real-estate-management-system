@@ -124,7 +124,8 @@ const EasyPaymentModal = ({
       };
 
       // Call the easycheckout API
-      const apiUrl = window.location.origin + '/API/easycheckout.php';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/WDPF/React-project/real-estate-management-system/API';
+      const apiUrl = `${API_BASE_URL}/easycheckout.php`;
       console.log('Calling API:', apiUrl);
       console.log('Payment payload:', paymentPayload);
       
