@@ -202,93 +202,93 @@ const PropertyDetails = () => {
                 </div>
               </div>
               {/* Property Specifications */}
-          <div className="card mb-4">
-            <div className="card-header bg-light">
-              <h4 className="mb-0">Property Specifications</h4>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                {property.bedrooms && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-bed text-primary"></i>
+              <div className="card mb-4">
+                <div className="card-header bg-light">
+                  <h4 className="mb-0">Property Specifications</h4>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    {property.bedrooms && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-bed text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Bedrooms</div>
+                            <div className="fw-medium">{property.bedrooms}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-muted small">Bedrooms</div>
-                        <div className="fw-medium">{property.bedrooms}</div>
+                    )}
+                    {property.bathrooms && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-bath text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Bathrooms</div>
+                            <div className="fw-medium">{property.bathrooms}</div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {property.area && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-ruler-combined text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Area</div>
+                            <div className="fw-medium">{property.area_formatted || property.area}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {property.property_type && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-building text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Property Type</div>
+                            <div className="fw-medium">{property.property_type}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {property.floor && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-layer-group text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Floor</div>
+                            <div className="fw-medium">{property.floor}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {property.facing && (
+                      <div className="col-md-6 mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light p-2 rounded me-3">
+                            <i className="fas fa-compass text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Facing</div>
+                            <div className="fw-medium">{property.facing}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                {property.bathrooms && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-bath text-primary"></i>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Bathrooms</div>
-                        <div className="fw-medium">{property.bathrooms}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {property.area && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-ruler-combined text-primary"></i>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Area</div>
-                        <div className="fw-medium">{property.area_formatted || property.area}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {property.property_type && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-building text-primary"></i>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Property Type</div>
-                        <div className="fw-medium">{property.property_type}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {property.floor && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-layer-group text-primary"></i>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Floor</div>
-                        <div className="fw-medium">{property.floor}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {property.facing && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-light p-2 rounded me-3">
-                        <i className="fas fa-compass text-primary"></i>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Facing</div>
-                        <div className="fw-medium">{property.facing}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div> 
               {/* Property Description Section */}
               <div className="card mb-4 shadow-sm">
                 <div className="card-body">
@@ -325,7 +325,7 @@ const PropertyDetails = () => {
                   </div>
                 </div>
               )}
-               {/* Location Map Section */}
+              {/* Location Map Section */}
               <div className="card mb-4 shadow-sm" style={{ height: '200px', }}>
                 <div className="card-body">
                   <h4 className="fw-bold mb-3">
@@ -334,11 +334,11 @@ const PropertyDetails = () => {
                   <p className="text-muted mb-3">
                     <strong>Address:</strong> {property.location_name || property.address}
                   </p>
-                  </div>
+                </div>
               </div>
             </div>
-            
-            
+
+
 
             {/* RIGHT column: Details */}
             <div className="col-lg-4">
@@ -451,7 +451,7 @@ const PropertyDetails = () => {
                     >
                       <i className="fas fa-shopping-cart me-2"></i>Add to Cart
                     </button>
-                    
+
                     <button
                       onClick={() => handleBookingClick(property)}
                       className={`btn btn-lg ${property.type === 'For Sale' ? 'btn-primary' : 'btn-success'}`}
@@ -459,11 +459,11 @@ const PropertyDetails = () => {
                       <i className="fas fa-calendar-check me-2"></i>
                       {property.type === 'For Sale' ? 'Purchase Booking' : 'Rental Booking'}
                     </button>
-                    
+
                     <button className="btn btn-outline-secondary btn-lg">
                       <i className="fas fa-phone me-2"></i>Call Now
                     </button>
-                    
+
                     <button className="btn btn-outline-info btn-lg">
                       <i className="fas fa-share-alt me-2"></i>Share Property
                     </button>
@@ -478,7 +478,7 @@ const PropertyDetails = () => {
                     <i className="fas fa-user-tie me-2 text-primary"></i>Property Agent
                   </h5>
                   <div className="d-flex align-items-center mb-3">
-                    <div className="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style={{width: '50px', height: '50px'}}>
+                    <div className="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style={{ width: '50px', height: '50px' }}>
                       <i className="fas fa-user text-white"></i>
                     </div>
                     <div>
@@ -486,7 +486,7 @@ const PropertyDetails = () => {
                       <small className="text-muted">Senior Property Consultant</small>
                     </div>
                   </div>
-                  
+
                   <div className="mb-3">
                     <div className="d-flex align-items-center mb-2">
                       <i className="fas fa-phone text-success me-2"></i>
@@ -497,7 +497,7 @@ const PropertyDetails = () => {
                       <span>{property.agent_email || 'fatima@netro-realestate.com'}</span>
                     </div>
                   </div>
-                  
+
                   <div className="d-grid gap-2">
                     <button className="btn btn-success btn-sm">
                       <i className="fab fa-whatsapp me-2"></i>WhatsApp
@@ -539,43 +539,43 @@ const PropertyDetails = () => {
             </div>
           </div>
 
-          
-           <h3>Location Map</h3>
 
-                  {/* Interactive Map Container */}
-                  <div className="map-container mb-3" style={{ height: '400px', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px', position: 'relative', overflow: 'hidden' }}>
-                    <iframe
-                      src={`https://maps.google.com/maps?width=100%25&height=400&hl=en&q=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0, borderRadius: '8px' }}
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={`Map of ${property.location_name || property.address}`}
-                    ></iframe>
+          <h3>Location Map</h3>
 
-                    {/* Map Controls */}
-                    <div className="position-absolute bottom-0 start-0 m-3">
-                      <div className="btn-group-vertical" role="group">
-                        <button
-                          className="btn btn-light btn-sm"
-                          title="View in Google Maps"
-                          onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}`, '_blank')}
-                        >
-                          <i className="fab fa-google"></i>
-                        </button>
-                        <button
-                          className="btn btn-light btn-sm"
-                          title="Get Directions"
-                          onClick={() => window.open(`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}`, '_blank')}
-                        >
-                          <i className="fas fa-directions"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                
+          {/* Interactive Map Container */}
+          <div className="map-container mb-3" style={{ height: '400px', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px', position: 'relative', overflow: 'hidden' }}>
+            <iframe
+              src={`https://maps.google.com/maps?width=100%25&height=400&hl=en&q=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              width="100%"
+              height="100%"
+              style={{ border: 0, borderRadius: '8px' }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title={`Map of ${property.location_name || property.address}`}
+            ></iframe>
+
+            {/* Map Controls */}
+            <div className="position-absolute bottom-0 start-0 m-3">
+              <div className="btn-group-vertical" role="group">
+                <button
+                  className="btn btn-light btn-sm"
+                  title="View in Google Maps"
+                  onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}`, '_blank')}
+                >
+                  <i className="fab fa-google"></i>
+                </button>
+                <button
+                  className="btn btn-light btn-sm"
+                  title="Get Directions"
+                  onClick={() => window.open(`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent((property.location_name || property.address || 'Dhaka') + ', Bangladesh')}`, '_blank')}
+                >
+                  <i className="fas fa-directions"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
 
           {/* Similar Properties */}
           <div className="row mt-5">
@@ -590,7 +590,7 @@ const PropertyDetails = () => {
                       {similarProperties.map(similar => (
                         <div key={similar.id} className="col-md-4">
                           <div className="card h-100">
-                            <img src={similar.image || 'https://via.placeholder.com/300x200'} className="card-img-top" alt={similar.title} style={{height: '200px', objectFit: 'cover'}} />
+                            <img src={similar.image || 'https://via.placeholder.com/300x200'} className="card-img-top" alt={similar.title} style={{ height: '200px', objectFit: 'cover' }} />
                             <div className="card-body">
                               <h6 className="card-title">{similar.title}</h6>
                               <p className="text-muted small">{similar.location}</p>

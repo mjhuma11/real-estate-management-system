@@ -1,6 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "../../contexts/AuthContext";
+import RealtimeNotifications from "./RealtimeNotifications";
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
@@ -66,8 +67,9 @@ const AdminLayout = () => {
       <div className="flex-grow-1">
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom">
           <div className="container-fluid">
-            <div className="ms-auto d-flex align-items-center">
-              <span className="me-3">{user?.username || user?.email}</span>
+            <div className="ms-auto d-flex align-items-center gap-3">
+              <RealtimeNotifications />
+              <span className="me-2">{user?.username || user?.email}</span>
               <div className="dropdown">
                 <button className="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
                   <i className="fas fa-user-circle"></i>

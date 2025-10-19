@@ -150,12 +150,38 @@ try {
     $stmt->bindParam(':role', $role);
 
     if ($stmt->execute()) {
+        $userId = $conn->lastInsertId();
+        
+        // Log the registration activity
+        try {
+            include_once 'log-activity.php';
+            logActivityWithStyle(
+                ActivityTypes::USER_REGISTERED,
+                'New User Registration',
+                "registered as a new $role",
+                [
+                    'user_id' => $userId,
+                    'user_name' => $username,
+                    'entity_type' => 'user',
+                    'entity_id' => $userId,
+                    'details' => [
+                        'email' => $email,
+                        'role' => $role,
+                        'registration_ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                    ]
+                ]
+            );
+        } catch (Exception $e) {
+            // Don't fail registration if activity logging fails
+            error_log('Failed to log registration activity: ' . $e->getMessage());
+        }
+        
         http_response_code(201);
         echo json_encode([
             'success' => true,
             'message' => 'Registration successful',
             'user' => [
-                'id' => $conn->lastInsertId(),
+                'id' => $userId,
                 'username' => $username,
                 'email' => $email,
                 'role' => $role

@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'log-activity.php';
 
 // Enable error reporting
 error_reporting(E_ALL);

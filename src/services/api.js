@@ -30,7 +30,7 @@ export const propertiesAPI = {
   // Get all properties with optional filters
   getAll: (filters = {}) => {
     const queryParams = new URLSearchParams();
-    
+
     Object.keys(filters).forEach(key => {
       if (filters[key] !== '' && filters[key] !== null && filters[key] !== undefined) {
         queryParams.append(key, filters[key]);
@@ -81,7 +81,7 @@ export const projectsAPI = {
   // Get all projects with optional filters
   getAll: (filters = {}) => {
     const queryParams = new URLSearchParams();
-    
+
     Object.keys(filters).forEach(key => {
       if (filters[key] !== '' && filters[key] !== null && filters[key] !== undefined) {
         queryParams.append(key, filters[key]);

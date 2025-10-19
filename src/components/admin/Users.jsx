@@ -1,108 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../../config.jsx';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const usersPerPage = 10;
 
-  // Mock data - in a real app, this would come from an API
   useEffect(() => {
-    const mockUsers = [
-      {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+880 1234 567890',
-        role: 'customer',
-        status: 'active',
-        joinDate: '2024-01-15',
-        lastLogin: '2025-08-12 09:30',
-        propertiesViewed: 15,
-        inquiries: 3,
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        phone: '+880 1712 345678',
-        role: 'agent',
-        status: 'active',
-        joinDate: '2023-08-20',
-        lastLogin: '2025-08-11 16:45',
-        propertiesViewed: 45,
-        inquiries: 12,
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      },
-      {
-        id: 3,
-        name: 'Robert Johnson',
-        email: 'robert@example.com',
-        phone: '+880 1812 345679',
-        role: 'customer',
-        status: 'inactive',
-        joinDate: '2024-03-10',
-        lastLogin: '2025-07-28 14:20',
-        propertiesViewed: 8,
-        inquiries: 1,
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      },
-      {
-        id: 4,
-        name: 'Sarah Ahmed',
-        email: 'sarah@example.com',
-        phone: '+880 1934 567891',
-        role: 'admin',
-        status: 'active',
-        joinDate: '2023-01-05',
-        lastLogin: '2025-08-12 11:15',
-        propertiesViewed: 120,
-        inquiries: 25,
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      },
-      {
-        id: 5,
-        name: 'Michael Brown',
-        email: 'michael@example.com',
-        phone: '+880 1555 123456',
-        role: 'customer',
-        status: 'suspended',
-        joinDate: '2024-06-12',
-        lastLogin: '2025-08-05 08:30',
-        propertiesViewed: 22,
-        inquiries: 7,
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      },
-      {
-        id: 6,
-        name: 'Emily Davis',
-        email: 'emily@example.com',
-        phone: '+880 1666 789012',
-        role: 'agent',
-        status: 'active',
-        joinDate: '2023-11-18',
-        lastLogin: '2025-08-10 13:45',
-        propertiesViewed: 67,
-        inquiries: 18,
-        avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-      }
-    ];
-    setUsers(mockUsers);
-  }, []);
+    fetchUsers();
+  }, [currentPage, roleFilter, statusFilter]);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone.includes(searchTerm);
-    
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Debounce search term
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchUsers();
+      } else {
+        setCurrentPage(1); // This will trigger fetchUsers via the other useEffect
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: usersPerPage,
+        search: searchTerm,
+        role: roleFilter !== 'all' ? roleFilter : '',
+        status: statusFilter !== 'all' ? statusFilter : ''
+      });
+
+      console.log('Fetching users from:', `${API_URL}/get-users.php?${params}`);
+      const response = await fetch(`${API_URL}/get-users.php?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Users API response:', data);
+      
+      if (data.success) {
+        setUsers(data.users || []);
+        setTotalPages(data.totalPages || Math.ceil((data.total || 0) / usersPerPage));
+      } else {
+        setError(data.error || 'Failed to fetch users');
+        setUsers([]);
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to connect to server. Please check your API connection.');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Since API handles filtering, we use users directly
+  const filteredUsers = users;
 
   const getRoleBadge = (role) => {
     const roleMap = {
@@ -132,37 +100,115 @@ const Users = () => {
     );
   };
 
-  const handleStatusChange = (userId, newStatus) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, status: newStatus } : user
-    ));
-  };
+  const handleStatusChange = async (userId, newStatus) => {
+    try {
+      const response = await fetch(`${API_URL}/update-user-status.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: userId, status: newStatus })
+      });
 
-  const handleDeleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user.id !== userId));
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(users.map(user => 
+          user.id === userId ? { ...user, status: newStatus } : user
+        ));
+      } else {
+        alert('Failed to update user status: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      alert('Failed to update user status');
     }
   };
 
-  const getUserStats = () => {
-    const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.status === 'active').length;
-    const agents = users.filter(user => user.role === 'agent').length;
-    const customers = users.filter(user => user.role === 'customer').length;
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
 
-    return { totalUsers, activeUsers, agents, customers };
+    try {
+      const response = await fetch(`${API_URL}/delete-user.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: userId })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(users.filter(user => user.id !== userId));
+      } else {
+        alert('Failed to delete user: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Failed to delete user');
+    }
   };
 
-  const stats = getUserStats();
+  const [totalStats, setTotalStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    agents: 0,
+    customers: 0
+  });
+
+  const fetchUserStats = async () => {
+    try {
+      const response = await fetch(`${API_URL}/get-users-count.php`);
+      const data = await response.json();
+      
+      if (data.success && data.stats) {
+        setTotalStats({
+          totalUsers: data.stats.total,
+          activeUsers: data.stats.status.active,
+          agents: data.stats.roles.agent,
+          customers: data.stats.roles.customer
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching user stats:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserStats();
+  }, []);
+
+  const stats = totalStats;
 
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">User Management</h1>
-        <Link to="/admin/users/new" className="btn btn-primary">
-          <i className="fas fa-plus me-2"></i>Add New User
-        </Link>
+        <div className="d-flex gap-2">
+          <button 
+            className="btn btn-outline-secondary"
+            onClick={fetchUsers}
+            disabled={loading}
+          >
+            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''} me-2`}></i>
+            Refresh
+          </button>
+          <Link to="/admin/users/new" className="btn btn-primary">
+            <i className="fas fa-plus me-2"></i>Add New User
+          </Link>
+        </div>
       </div>
+
+      {error && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          {error}
+          <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="row mb-4">
@@ -259,6 +305,16 @@ const Users = () => {
 
       {/* Users Table */}
       <div className="card">
+        <div className="card-header d-flex justify-content-between align-items-center">
+          <h6 className="mb-0">
+            {loading ? 'Loading users...' : `Users (${filteredUsers.length})`}
+          </h6>
+          {!loading && (
+            <small className="text-muted">
+              Page {currentPage} of {totalPages}
+            </small>
+          )}
+        </div>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead className="table-light">
@@ -273,7 +329,16 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2 mb-0 text-muted">Loading users...</p>
+                  </td>
+                </tr>
+              ) : filteredUsers.length > 0 ? (
                 filteredUsers.map(user => (
                   <tr key={user.id}>
                     <td>
@@ -359,18 +424,37 @@ const Users = () => {
         </div>
         
         {/* Pagination */}
-        {filteredUsers.length > 0 && (
+        {!loading && filteredUsers.length > 0 && totalPages > 1 && (
           <div className="card-footer bg-white">
             <nav>
               <ul className="pagination justify-content-center mb-0">
-                <li className="page-item disabled">
-                  <a className="page-link" href="#" tabIndex="-1" aria-disabled="true">Previous</a>
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
                 </li>
-                <li className="page-item active"><a className="page-link" href="#">1</a></li>
-                <li className="page-item"><a className="page-link" href="#">2</a></li>
-                <li className="page-item"><a className="page-link" href="#">3</a></li>
-                <li className="page-item">
-                  <a className="page-link" href="#">Next</a>
+                {[...Array(totalPages)].map((_, index) => (
+                  <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                    <button 
+                      className="page-link" 
+                      onClick={() => setCurrentPage(index + 1)}
+                    >
+                      {index + 1}
+                    </button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
                 </li>
               </ul>
             </nav>
