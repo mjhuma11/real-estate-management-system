@@ -76,6 +76,49 @@ ini_set('display_errors', 0);
                                 </tr>
                             </table>
 
+                            <?php
+                            // Get additional data from SSLCommerz value fields
+                            $payment_plan_id = $_POST['value_a'] ?? '';
+                            $booking_type = $_POST['value_b'] ?? '';
+                            $property_id = $_POST['value_c'] ?? '';
+                            $user_id = $_POST['value_d'] ?? '';
+                            
+                            // If we have the required data, process the appointment
+                            if (!empty($payment_plan_id) && !empty($user_id) && !empty($property_id)) {
+                                // Update the payment transaction to mark it as completed
+                                $update_transaction_sql = "UPDATE payment_transactions SET payment_status = 'completed' WHERE transaction_id = ?";
+                                $update_transaction_stmt = $conn_integration->prepare($update_transaction_sql);
+                                $update_transaction_stmt->execute([$tran_id]);
+                                
+                                // Update appointment status to confirmed
+                                $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = (SELECT appointment_id FROM payment_plans WHERE id = ?)";
+                                $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
+                                $update_appointment_stmt->execute([$payment_plan_id]);
+                                
+                                // Set a flag in localStorage to indicate that the cart should be cleared
+                                ?>
+                                <div class="alert alert-info mt-4">
+                                    <h4 class="alert-heading">Booking Confirmed!</h4>
+                                    <p>Your property booking has been confirmed successfully. Redirecting to the payment success page...</p>
+                                </div>
+                                <script>
+                                    // Set a flag in localStorage to indicate that the cart should be cleared
+                                    localStorage.setItem('clearCartAfterPayment', 'true');
+                                    
+                                    // Redirect to the React payment success page
+                                    window.location.href = 'http://localhost/WDPF/React-project/real-estate-management-system/#/payment-success';
+                                </script>
+                                <?php
+                            } else {
+                                ?>
+                                <div class="alert alert-warning mt-4">
+                                    <h4 class="alert-heading">Partial Success</h4>
+                                    <p>Payment was successful, but we couldn't process your booking completely. Please contact support.</p>
+                                </div>
+                                <?php
+                            }
+                        ?>
+
                         <?php
 
                         } else { // update query returned error

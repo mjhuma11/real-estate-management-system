@@ -1,4 +1,3 @@
-
 <?php
 // Include config first (it will set CORS headers)
 require_once 'config.php';
@@ -114,33 +113,39 @@ try {
     curl_setopt($handle, CURLOPT_POST, 1);
     curl_setopt($handle, CURLOPT_POSTFIELDS, $post_data);
     curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-
-    // SSL verification based on environment
-    if (IS_SANDBOX || $config['connect_from_localhost']) {
-        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, FALSE);
-    } else {
-        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, TRUE);
-        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 2);
-    }
+    curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($handle, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
 
     $content = curl_exec($handle);
     $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($handle);
 
-    if ($code == 200 && !curl_errno($handle)) {
+    if ($content === false) {
         curl_close($handle);
-        $sslcommerzResponse = $content;
-    } else {
-        curl_close($handle);
-
-        // Log the error
-        error_log("SSL Commerce API Error: HTTP Code: $code, cURL Error: $curl_error");
-
+        error_log("SSL Commerce API cURL Error: " . $curl_error);
         echo json_encode([
             'status' => 'fail',
             'data' => null,
-            'message' => 'Failed to connect with SSL Commerce API. Please try again.'
+            'message' => 'cURL Error: ' . $curl_error
+        ]);
+        exit;
+    }
+
+    curl_close($handle);
+
+    // Log the response for debugging
+    error_log("SSL Commerce API Response: HTTP Code: $code, Content: $content");
+
+    if ($code >= 200 && $code < 300) {
+        $sslcommerzResponse = $content;
+    } else {
+        error_log("SSL Commerce API HTTP Error: HTTP Code: $code, Content: $content");
+        echo json_encode([
+            'status' => 'fail',
+            'data' => null,
+            'message' => 'HTTP Error: ' . $code . ' - Response: ' . substr($content, 0, 200)
         ]);
         exit;
     }
@@ -158,10 +163,11 @@ try {
 $sslcz = json_decode($sslcommerzResponse, true);
 
 if (json_last_error() !== JSON_ERROR_NONE) {
+    error_log("SSL Commerce API JSON Error: " . json_last_error_msg() . " - Response: " . $sslcommerzResponse);
     echo json_encode([
         'status' => 'fail',
         'data' => null,
-        'message' => 'Invalid response from SSL Commerce API'
+        'message' => 'Invalid response from SSL Commerce API: ' . json_last_error_msg()
     ]);
     exit;
 }
@@ -188,6 +194,9 @@ if (isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL'] != "") {
         }
     }
 
+    // Log the full response for debugging
+    error_log("SSL Commerce API Failed Response: " . json_encode($sslcz));
+
     echo json_encode([
         'status' => 'fail',
         'data' => null,
@@ -196,4 +205,3 @@ if (isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL'] != "") {
     ]);
 }
 ?>
-                            		

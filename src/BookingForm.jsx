@@ -191,8 +191,27 @@ const BookingForm = () => {
         // Removed emergency_contact field since it doesn't exist in the database
       }
 
+      // Create appointment in database
+      const appointmentResponse = await fetch(`${API_URL}/create-appointment-from-cart.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData)
+      });
+
+      const appointmentResult = await appointmentResponse.json();
+
+      if (!appointmentResult.success) {
+        throw new Error(appointmentResult.error || 'Failed to create appointment');
+      }
+
+      // Add appointment ID to the data
+      submitData.appointment_id = appointmentResult.data.appointment_id;
+      submitData.payment_plan_id = appointmentResult.data.payment_plan_id;
+
       if (existingCartItem) {
-        // Update existing cart item with booking form data
+        // Update existing cart item with booking form data and appointment ID
         updateCartItemBookingForm(existingCartItem.id, submitData);
         
         showSuccess(
@@ -202,7 +221,7 @@ const BookingForm = () => {
           </div>
         );
       } else {
-        // Add new item to cart
+        // Add new item to cart with appointment ID
         addToCart(submitData);
         
         showSuccess(

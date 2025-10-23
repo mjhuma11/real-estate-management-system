@@ -123,6 +123,9 @@ const Checkout = () => {
       return;
     }
 
+    // Clear cart immediately when pay button is clicked
+    clearCart();
+
     // Process payment through your API
     setProcessing(true);
     
@@ -223,7 +226,7 @@ const Checkout = () => {
       product_profile: 'general',
 
       // Booking information
-      payment_plan_id: `NETRO_${Date.now()}_${selectedCartItems.map(item => item.id).join('_')}`,
+      payment_plan_id: firstItem.payment_plan_id || `NETRO_${Date.now()}_${selectedCartItems.map(item => item.id).join('_')}`,
       booking_type: selectedCartItems.length > 1 ? 'mixed' : firstItem.booking_type,
       property_id: selectedCartItems.length > 1 ? 'multiple' : firstItem.property_id,
       user_id: user?.id || firstItem.user_id,

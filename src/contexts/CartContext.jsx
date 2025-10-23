@@ -21,6 +21,17 @@ export const CartProvider = ({ children }) => {
     console.log('🛒 CartContext: Component mounted, loading cart from localStorage');
     const loadCartFromStorage = () => {
       try {
+        // Check if we need to clear the cart after a successful payment
+        const clearCartFlag = localStorage.getItem('clearCartAfterPayment');
+        if (clearCartFlag === 'true') {
+          console.log('🛒 CartContext: Clearing cart after successful payment');
+          localStorage.removeItem('propertyCart');
+          localStorage.removeItem('clearCartAfterPayment');
+          setCartItems([]);
+          setIsInitialized(true);
+          return;
+        }
+
         const savedCart = localStorage.getItem('propertyCart');
         console.log('🛒 CartContext: Raw localStorage data:', savedCart);
         
@@ -76,10 +87,14 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems, isInitialized]);
 
-  const addToCart = (appointmentData) => {
+  const addToCart = async (appointmentData) => {
     console.log('🛒 CartContext: Adding item to cart:', appointmentData);
+    
+    // Create a temporary ID for the cart item
+    const tempId = Date.now();
+    
     const newItem = {
-      id: Date.now(), // Temporary ID until submitted to backend
+      id: tempId, // Temporary ID until submitted to backend
       ...appointmentData,
       status: 'pending',
       createdAt: new Date().toISOString(),
@@ -93,8 +108,9 @@ export const CartProvider = ({ children }) => {
       console.log('🛒 CartContext: New cart items:', newCart);
       return newCart;
     });
-    console.log('🛒 CartContext: Item added with ID:', newItem.id);
-    return newItem.id;
+    
+    console.log('🛒 CartContext: Item added with ID:', tempId);
+    return tempId;
   };
 
   const removeFromCart = (itemId) => {
@@ -130,6 +146,13 @@ export const CartProvider = ({ children }) => {
   };
 
   const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem('propertyCart');
+  };
+
+  const clearCartAfterPayment = () => {
+    // Set flag to clear cart after payment
+    localStorage.setItem('clearCartAfterPayment', 'true');
     setCartItems([]);
   };
 
@@ -201,6 +224,7 @@ export const CartProvider = ({ children }) => {
     updateCartItemStatus,
     updateCartItemBookingForm,
     clearCart,
+    clearCartAfterPayment,
     getCartCount,
     getPendingCount,
     getAcceptedCount,
