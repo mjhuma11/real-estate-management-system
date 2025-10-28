@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useContext } from 'react';
 import AuthContext from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 const PropertyCard = ({ property }) => {
   const { addToCart } = useCart();
@@ -9,12 +10,20 @@ const PropertyCard = ({ property }) => {
 
   const handleAddToCart = () => {
     if (!isAuthenticated()) {
-      alert('Please login to add properties to cart');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please login to add properties to cart'
+      });
       return;
     }
     
     if (!isCustomer()) {
-      alert('Only customers can add properties to cart');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can add properties to cart'
+      });
       return;
     }
 
@@ -43,7 +52,11 @@ const PropertyCard = ({ property }) => {
     };
 
     addToCart(cartItem);
-    alert('Property added to cart successfully!');
+    Swal.fire({
+      icon: 'success',
+      title: 'Added to Cart!',
+      text: 'Property added to cart successfully!'
+    });
   };
 
   return (

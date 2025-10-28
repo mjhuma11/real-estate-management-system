@@ -1,9 +1,20 @@
-<!-- 
-    ######
-    # THIS FILE IS ONLY AN EXAMPLE. PLEASE MODIFY AS REQUIRED.
-    # Contributor: Md. Rakibul Islam <rakibul.islam@sslwireless.com>
-    ######
- -->
+<?php
+######
+# THIS FILE IS ONLY AN EXAMPLE. PLEASE MODIFY AS REQUIRED.
+# Contributor: Md. Rakibul Islam <rakibul.islam@sslwireless.com>
+######
+
+error_reporting(0);
+ini_set('display_errors', 0);
+
+// Get the transaction data from POST
+$transaction_data = $_POST;
+
+// Redirect to the React app with transaction data
+$redirect_url = "http://localhost:5173/checkout?" . http_build_query($transaction_data);
+header("Location: " . $redirect_url);
+exit();
+?>
 
 <!DOCTYPE html>
 

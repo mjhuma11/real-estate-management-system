@@ -2,10 +2,11 @@ import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from './contexts/CartContext';
 import AuthContext from './contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 const ShoppingCart = () => {
   const { cartItems, removeFromCart, clearCart } = useCart();
-  const { isAuthenticated, isCustomer } = useContext(AuthContext);
+  const { isAuthenticated, isCustomer, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // Handle booking form navigation
@@ -59,7 +60,11 @@ const ShoppingCart = () => {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) {
-      alert('Your cart is empty!');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Empty Cart',
+        text: 'Your cart is empty!'
+      });
       return;
     }
     // Navigate to the new checkout page
@@ -112,7 +117,10 @@ const ShoppingCart = () => {
     );
   }
 
-  if (cartItems.length === 0) {
+  // Filter cart items to only show items for the current user
+  const userCartItems = cartItems.filter(item => item.user_id === user?.id);
+
+  if (userCartItems.length === 0) {
     return (
       <div className="container py-5">
         <div className="row justify-content-center">
@@ -145,7 +153,7 @@ const ShoppingCart = () => {
             </h1>
             <div className="d-flex gap-2">
               <span className="badge bg-primary fs-6">
-                <i className="fas fa-box me-1"></i>{cartItems.length} Item{cartItems.length !== 1 ? 's' : ''}
+                <i className="fas fa-box me-1"></i>{userCartItems.length} Item{userCartItems.length !== 1 ? 's' : ''}
               </span>
               <span className="badge bg-success fs-6">
                 <i className="fas fa-tag me-1"></i>{formatCurrency(totals.subtotal)}
@@ -159,7 +167,7 @@ const ShoppingCart = () => {
         {/* Cart Items - Left Side */}
         <div className="col-lg-8">
           {/* Incomplete Booking Forms */}
-          {cartItems.some(item => !item.bookingFormCompleted) && (
+          {userCartItems.some(item => !item.bookingFormCompleted) && (
             <div className="card shadow-sm border-warning mb-4">
               <div className="card-header bg-warning bg-opacity-10">
                 <h6 className="mb-0 text-warning">
@@ -168,7 +176,7 @@ const ShoppingCart = () => {
                 </h6>
               </div>
               <div className="card-body p-0">
-                {cartItems.filter(item => !item.bookingFormCompleted).map((item) => (
+                {userCartItems.filter(item => !item.bookingFormCompleted).map((item) => (
                   <div key={item.id} className="border-bottom p-3">
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
@@ -200,18 +208,18 @@ const ShoppingCart = () => {
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header bg-light">
               <div className="d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Cart Items ({cartItems.length})</h5>
+                <h5 className="mb-0">Cart Items ({userCartItems.length})</h5>
                 <button
                   className="btn btn-outline-danger btn-sm"
                   onClick={clearCart}
-                  disabled={cartItems.length === 0}
+                  disabled={userCartItems.length === 0}
                 >
                   <i className="fas fa-trash me-1"></i>Clear Cart
                 </button>
               </div>
             </div>
             <div className="card-body p-0">
-              {cartItems.map((item) => (
+              {userCartItems.map((item) => (
                 <div key={item.id} className="border-bottom p-4">
                   <div className="d-flex">
                     <div className="flex-grow-1">
@@ -230,6 +238,11 @@ const ShoppingCart = () => {
                               <i className="fas fa-exclamation-triangle me-1"></i>Form Pending
                             </span>
                           )}
+                          {item.appointment_id && (
+                            <span className="badge bg-info">
+                              <i className="fas fa-calendar-check me-1"></i>Appointment #{item.appointment_id}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <p className="text-muted mb-2">
@@ -240,6 +253,11 @@ const ShoppingCart = () => {
                           <p className="mb-1">
                             <strong>Booking Date:</strong> {formatDate(item.booking_date)}
                           </p>
+                          {item.appointment_id && (
+                            <p className="mb-1">
+                              <strong>Appointment ID:</strong> #{item.appointment_id}
+                            </p>
+                          )}
                         </div>
                         <div className="col-md-6">
                           {item.booking_type === 'sale' ? (
@@ -332,8 +350,8 @@ const ShoppingCart = () => {
               </div>
               {/* Checkout Button */}
               {(() => {
-                const hasIncompleteBookings = cartItems.some(item => !item.bookingFormCompleted);
-                const canCheckout = cartItems.length > 0 && !hasIncompleteBookings;
+                const hasIncompleteBookings = userCartItems.some(item => !item.bookingFormCompleted);
+                const canCheckout = userCartItems.length > 0 && !hasIncompleteBookings;
 
                 if (canCheckout) {
                   return (
@@ -372,11 +390,11 @@ const ShoppingCart = () => {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <div className="fw-bold">Total: {formatCurrency(totals.subtotal)}</div>
-            <div className="small text-muted">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</div>
+            <div className="small text-muted">{userCartItems.length} item{userCartItems.length !== 1 ? 's' : ''}</div>
           </div>
           {(() => {
-            const hasIncompleteBookings = cartItems.some(item => !item.bookingFormCompleted);
-            const canCheckout = cartItems.length > 0 && !hasIncompleteBookings;
+            const hasIncompleteBookings = userCartItems.some(item => !item.bookingFormCompleted);
+            const canCheckout = userCartItems.length > 0 && !hasIncompleteBookings;
 
             if (canCheckout) {
               return (

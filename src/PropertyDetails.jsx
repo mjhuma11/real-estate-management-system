@@ -3,6 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useFavourites } from './contexts/FavouritesContext';
 import { useCart } from './contexts/CartContext';
 import AuthContext from './contexts/AuthContext';
+import Swal from 'sweetalert2';
 import './styles/favourites.css';
 import './styles/property-details.css';
 
@@ -11,7 +12,7 @@ const PropertyDetails = () => {
   const navigate = useNavigate();
   const { toggleFavourite, isFavourite } = useFavourites();
   const { addToCart, getCartCount } = useCart();
-  const { isAuthenticated, isCustomer } = useContext(AuthContext);
+  const { isAuthenticated, isCustomer, user } = useContext(AuthContext);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,7 +53,11 @@ const PropertyDetails = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can add properties to favourites');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can add properties to favourites'
+      });
       return;
     }
     toggleFavourite(property);
@@ -64,9 +69,24 @@ const PropertyDetails = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can book properties');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can book properties'
+      });
       return;
     }
+    
+    // Check if property is already booked
+    if (property.status === 'sold' || property.status === 'rented') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Property Booked',
+        text: 'This property is already booked and cannot be added to cart.'
+      });
+      return;
+    }
+    
     navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);
   };
 
@@ -76,7 +96,21 @@ const PropertyDetails = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can add properties to cart');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can add properties to cart'
+      });
+      return;
+    }
+    
+    // Check if property is already booked
+    if (property.status === 'sold' || property.status === 'rented') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Property Booked',
+        text: 'This property is already booked and cannot be added to cart.'
+      });
       return;
     }
 
@@ -92,11 +126,15 @@ const PropertyDetails = () => {
       down_payment_details: property.type === 'For Sale' ? Math.round((property.price || 0) * 1) : 0, // 20% down payment
       advance_deposit_amount: property.type === 'For Rent' ? (property.monthly_rent || 0) * 2 : 0, // 2 months advance
       booking_money_amount: property.type === 'For Sale' ? Math.round((property.price || 0) * 1) : 0, // 10% booking money
-      user_id: 1 // This should come from auth context
+      user_id: user?.id // This comes from auth context
     };
 
     const itemId = addToCart(cartItemData);
-    alert(`Property added to cart! Cart now has ${getCartCount()} items.`);
+    Swal.fire({
+      icon: 'success',
+      title: 'Added to Cart!',
+      text: `Property added to cart! Cart now has ${getCartCount()} items.`
+    });
     console.log('🛒 Added to cart:', cartItemData, 'Item ID:', itemId);
   };
 
@@ -368,6 +406,13 @@ const PropertyDetails = () => {
                     {property.location_name || property.address}
                   </p>
 
+                  {/* Status Badge */}
+                  {(property.status === 'sold' || property.status === 'rented') && (
+                    <div className="mb-3">
+                      <span className="badge bg-danger fs-6">Booked</span>
+                    </div>
+                  )}
+
                   {/* Price Section - Different for Sale vs Rent */}
                   {property.type === 'For Sale' ? (
                     <div className="price-section sale mb-4">
@@ -448,16 +493,19 @@ const PropertyDetails = () => {
                     <button
                       onClick={() => handleAddToCart(property)}
                       className="btn btn-warning btn-lg"
+                      disabled={property.status === 'sold' || property.status === 'rented'}
                     >
-                      <i className="fas fa-shopping-cart me-2"></i>Add to Cart
+                      <i className="fas fa-shopping-cart me-2"></i>
+                      {property.status === 'sold' || property.status === 'rented' ? 'Property Booked' : 'Add to Cart'}
                     </button>
 
                     <button
                       onClick={() => handleBookingClick(property)}
                       className={`btn btn-lg ${property.type === 'For Sale' ? 'btn-primary' : 'btn-success'}`}
+                      disabled={property.status === 'sold' || property.status === 'rented'}
                     >
                       <i className="fas fa-calendar-check me-2"></i>
-                      {property.type === 'For Sale' ? 'Purchase Booking' : 'Rental Booking'}
+                      {property.status === 'sold' || property.status === 'rented' ? 'Property Booked' : (property.type === 'For Sale' ? 'Purchase Booking' : 'Rental Booking')}
                     </button>
 
                     <button className="btn btn-outline-secondary btn-lg">

@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useContext, useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from './contexts/CartContext';
 import AuthContext from './contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 const Checkout = () => {
+  const location = useLocation();
   const { cartItems, clearCart } = useCart();
   const { user, isAuthenticated, isCustomer } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ const Checkout = () => {
     country: 'Bangladesh',
     saveInfo: false
   });
+  const [paymentError, setPaymentError] = useState(null);
   // Removed tab state since we're using a single page layout
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -38,7 +41,18 @@ const Checkout = () => {
         phone: user.phone || ''
       }));
     }
-  }, [cartItems, user]);
+    
+    // Check for payment error from URL parameters
+    const params = new URLSearchParams(location.search);
+    if (params.has('error')) {
+      setPaymentError({
+        message: params.get('error'),
+        transactionId: params.get('tran_id'),
+        amount: params.get('amount'),
+        currency: params.get('currency')
+      });
+    }
+  }, [cartItems, user, location]);
 
   // Calculate totals for selected items
   const calculateTotals = () => {
@@ -97,12 +111,18 @@ const Checkout = () => {
     }));
   };
 
-  // Handle place order
-  const handlePlaceOrder = async (e) => {
+  const handlePayment = async (e) => {
     e.preventDefault();
+    
+    // Clear any previous payment error
+    setPaymentError(null);
 
     if (selectedItems.length === 0) {
-      alert('Please select at least one item to checkout');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Items Selected',
+        text: 'Please select at least one item to checkout'
+      });
       return;
     }
 
@@ -110,7 +130,11 @@ const Checkout = () => {
     if (!billingInfo.firstName || !billingInfo.lastName || !billingInfo.email ||
       !billingInfo.phone || !billingInfo.address || !billingInfo.city ||
       !billingInfo.state || !billingInfo.zipCode) {
-      alert('Please fill in all required billing information');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please fill in all required billing information'
+      });
       return;
     }
 
@@ -119,7 +143,11 @@ const Checkout = () => {
     const incompleteItems = selectedCartItems.filter(item => !item.bookingFormCompleted);
     
     if (incompleteItems.length > 0) {
-      alert(`Please complete booking forms for ${incompleteItems.length} item(s) before checkout`);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Booking Forms',
+        text: `Please complete booking forms for ${incompleteItems.length} item(s) before checkout`
+      });
       return;
     }
 
@@ -180,12 +208,16 @@ const Checkout = () => {
         window.location.href = result.data;
       } else {
         console.error('Payment failed:', result);
-        alert('Payment failed: ' + (result.message || 'Unknown error'));
+        setPaymentError({
+          message: result.message || 'Payment processing failed'
+        });
       }
 
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Payment failed: ' + error.message);
+      setPaymentError({
+        message: error.message
+      });
     } finally {
       setProcessing(false);
     }
@@ -223,7 +255,7 @@ const Checkout = () => {
       product_profile: 'general',
 
       // Booking information
-      payment_plan_id: `NETRO_${Date.now()}_${selectedCartItems.map(item => item.id).join('_')}`,
+      payment_plan_id: firstItem.payment_plan_id || `NETRO_${Date.now()}_${selectedCartItems.map(item => item.id).join('_')}`,
       booking_type: selectedCartItems.length > 1 ? 'mixed' : firstItem.booking_type,
       property_id: selectedCartItems.length > 1 ? 'multiple' : firstItem.property_id,
       user_id: user?.id || firstItem.user_id,
@@ -234,7 +266,9 @@ const Checkout = () => {
         property_id: item.property_id,
         property_title: item.property_title,
         booking_type: item.booking_type,
-        amount: item.booking_type === 'sale' ? item.booking_money_amount : item.advance_deposit_amount
+        amount: item.booking_type === 'sale' ? item.booking_money_amount : item.advance_deposit_amount,
+        appointment_id: item.appointment_id,
+        payment_plan_id: item.payment_plan_id
       })),
       total_items: selectedCartItems.length
     };
@@ -363,6 +397,24 @@ const Checkout = () => {
         </div>
       </div>
 
+      {/* Payment Error Alert */}
+      {paymentError && (
+        <div className="row">
+          <div className="col-12">
+            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+              <h5 className="alert-heading">
+                <i className="fas fa-exclamation-triangle me-2"></i>Payment Failed
+              </h5>
+              <p>{paymentError.message || 'Your payment could not be processed. Please try again.'}</p>
+              {paymentError.transactionId && (
+                <p className="mb-1"><strong>Transaction ID:</strong> {paymentError.transactionId}</p>
+              )}
+              <button type="button" className="btn-close" onClick={() => setPaymentError(null)}></button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="row">
         {/* Left Side - Checkout Form */}
         <div className="col-lg-8">
@@ -371,7 +423,7 @@ const Checkout = () => {
               <h5 className="mb-0">Checkout Information</h5>
             </div>
             <div className="card-body">
-              <form onSubmit={handlePlaceOrder}>
+              <form onSubmit={handlePayment}>
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <label className="form-label">First Name *</label>
@@ -631,6 +683,11 @@ const Checkout = () => {
                             ) : (
                               <span className="badge bg-warning text-dark">
                                 <i className="fas fa-exclamation-triangle me-1"></i>Form Pending
+                              </span>
+                            )}
+                            {item.appointment_id && (
+                              <span className="badge bg-info">
+                                <i className="fas fa-calendar-check me-1"></i>#{item.appointment_id}
                               </span>
                             )}
                           </div>

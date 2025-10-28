@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useFavourites } from './contexts/FavouritesContext';
 import AuthContext from './contexts/AuthContext';
+import Swal from 'sweetalert2';
 import './styles/favourites.css';
 import PropertySearch from './components/PropertySearch';
 import PropertyCard from './components/PropertyCard';
@@ -217,7 +218,11 @@ const Properties = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can add properties to favourites');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can add properties to favourites'
+      });
       return;
     }
     toggleFavourite(property);
@@ -229,7 +234,11 @@ const Properties = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can book properties');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can book properties'
+      });
       return;
     }
     navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);

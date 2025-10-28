@@ -2,6 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { useFavourites } from './contexts/FavouritesContext';
 import AuthContext from './contexts/AuthContext';
+import Swal from 'sweetalert2';
+import './styles/favourites.css';
 
 const Favourites = () => {
   const { favourites, removeFavourite, clearAllFavourites } = useFavourites();
@@ -15,7 +17,11 @@ const Favourites = () => {
       return;
     }
     if (!isCustomer()) {
-      alert('Only customers can book properties');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can book properties'
+      });
       return;
     }
     navigate(`/booking?property=${property.id}&title=${encodeURIComponent(property.title)}&type=${property.type}`);

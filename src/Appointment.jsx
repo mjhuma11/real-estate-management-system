@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import axios from 'axios';
 import './Appointment.css';
+
+const API_BASE_URL = 'https://example.com/api';
 
 const Appointment = () => {
   // State for API data
@@ -137,21 +140,67 @@ const Appointment = () => {
     fetchData();
   }, []);
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.user_id || !formData.property_id || !formData.booking_date) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please fill in all required fields'
+      });
+      return;
+    }
+
     const submissionData = {
-      ...formData,
+      user_id: formData.user_id,
+      agent_id: formData.agent_id || null,
+      property_id: formData.property_id,
       booking_type: bookingType,
-      user_details: userDetails,
-      agent_details: agentDetails,
-      property_details: propertyDetails
+      booking_date: formData.booking_date,
+      notes: formData.notes
     };
 
-    // TODO: Replace with actual API call
-    console.log('Submitting appointment:', submissionData);
-    alert('Appointment submitted successfully!');
+    try {
+      // Submit to backend API
+      const response = await fetch(`${API_BASE_URL}/book-appointment.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Appointment submitted successfully!'
+        });
+        
+        // Reset form
+        setFormData({
+          user_id: '',
+          agent_id: '',
+          property_id: '',
+          booking_date: '',
+          notes: ''
+        });
+        setBookingType('rent');
+      } else {
+        throw new Error(result.error || 'Failed to submit appointment');
+      }
+    } catch (error) {
+      console.error('Error submitting appointment:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to submit appointment'
+      });
+    }
   };
 
   if (error) {

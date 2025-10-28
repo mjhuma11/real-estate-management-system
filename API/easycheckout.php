@@ -1,4 +1,3 @@
-
 <?php
 // Include config first (it will set CORS headers)
 require_once 'config.php';
@@ -196,4 +195,3 @@ if (isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL'] != "") {
     ]);
 }
 ?>
-                            		

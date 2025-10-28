@@ -1,5 +1,5 @@
 import { Outlet, Link } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import AuthContext from "./contexts/AuthContext";
 import { useFavourites } from "./contexts/FavouritesContext";
 import { useCart } from "./contexts/CartContext";
@@ -7,10 +7,17 @@ import { useCart } from "./contexts/CartContext";
 const Layout = () => {
     const { user, isAuthenticated, logout, isAdmin } = useContext(AuthContext);
     const { getFavouritesCount } = useFavourites();
-    const { getCartCount } = useCart();
+    const { getCartCount, cartItems } = useCart();
+    
+    // Calculate cart count for current user only
+    const userCartCount = useMemo(() => {
+        if (!user) return 0;
+        return cartItems.filter(item => item.user_id === user.id).length;
+    }, [cartItems, user]);
     
     const handleLogout = () => {
         logout();
+        // clearCart(); // Clear cart on logout - this is now handled in AuthContext
         window.location.href = '/';
     };
 
@@ -92,9 +99,9 @@ const Layout = () => {
                                     <li className="nav-item">
                                         <Link className="nav-link fw-semibold position-relative" to="/shopping-cart">
                                             <i className="fas fa-shopping-cart me-1"></i>Cart
-                                            {getCartCount() > 0 && (
+                                            {userCartCount > 0 && (
                                                 <span className="badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill" style={{fontSize: '0.6rem'}}>
-                                                    {getCartCount()}
+                                                    {userCartCount}
                                                 </span>
                                             )}
                                         </Link>

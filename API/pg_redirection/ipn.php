@@ -54,6 +54,23 @@ switch ($status) {
                 $sql   = $ot->updateTransactionQuery($tran_id, 'Processing');
 
                 if ($conn_integration->query($sql) === true) {
+                    // Update appointment status in our system
+                    // Extract payment plan ID from the transaction
+                    $payment_sql = "SELECT * FROM payment_transactions WHERE transaction_id = ?";
+                    $payment_stmt = $conn_integration->prepare($payment_sql);
+                    $payment_stmt->bind_param("s", $tran_id);
+                    $payment_stmt->execute();
+                    $payment_result = $payment_stmt->get_result();
+                    $payment_record = $payment_result->fetch_assoc();
+                    
+                    if ($payment_record && $payment_record['appointment_id']) {
+                        // Update appointment status to confirmed
+                        $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = ?";
+                        $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
+                        $update_appointment_stmt->bind_param("i", $payment_record['appointment_id']);
+                        $update_appointment_stmt->execute();
+                    }
+                    
                     echo "Payment Record Updated Successfully";
                 } else {
                     echo "Error updating record: " . $conn_integration->error;

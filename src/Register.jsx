@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { API_URL } from './config';
 
 const Register = () => {
@@ -13,18 +14,21 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match. Please make sure both password fields are identical.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Mismatch',
+        text: 'Passwords do not match. Please make sure both password fields are identical.'
+      });
       return;
     }
 
@@ -83,7 +87,11 @@ const Register = () => {
     } catch (error) {
       console.error('Registration error:', error);
       const errorMessage = error.message || 'Registration failed. Please try again later.';
-      alert(`Registration failed: ${errorMessage}`);
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed',
+        text: errorMessage
+      });
     } finally {
       setLoading(false);
     }

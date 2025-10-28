@@ -31,7 +31,7 @@ try {
     $conn->beginTransaction();
     
     // Get payment plan details
-    $plan_sql = "SELECT pp.*, p.title as property_title, u.username, u.email 
+    $plan_sql = "SELECT pp.*, p.title as property_title, u.username, u.email, p.type as property_type
                 FROM payment_plans pp
                 JOIN properties p ON pp.property_id = p.id
                 JOIN users u ON pp.user_id = u.id
@@ -92,6 +92,7 @@ try {
     
     // Check if this completes the initial payment requirement
     $initial_payment_complete = false;
+    $booking_confirmed = false;
     
     if ($input['transaction_type'] === 'down_payment' || 
         $input['transaction_type'] === 'advance_deposit') {
@@ -102,53 +103,86 @@ try {
         $update_appointment_stmt->execute([$plan['appointment_id']]);
         
         $initial_payment_complete = true;
+        $booking_confirmed = true;
+        
+        // Update payment plan to reflect initial payment completion
+        $update_plan_status_sql = "UPDATE payment_plans 
+                                  SET down_payment_paid = 1, 
+                                      down_payment_date = ?,
+                                      advance_paid = 1,
+                                      advance_payment_date = ?
+                                  WHERE id = ?";
+        $update_plan_status_stmt = $conn->prepare($update_plan_status_sql);
+        $update_plan_status_stmt->execute([date('Y-m-d'), date('Y-m-d'), $input['payment_plan_id']]);
+        
+        // Update property status to 'sold' or 'rented' based on property type
+        $new_property_status = ($plan['property_type'] === 'For Sale') ? 'sold' : 'rented';
+        $update_property_sql = "UPDATE properties SET status = ? WHERE id = ?";
+        $update_property_stmt = $conn->prepare($update_property_sql);
+        $update_property_stmt->execute([$new_property_status, $plan['property_id']]);
         
         // Generate payment schedules if not already created
         if ($plan['booking_type'] === 'sale' && $plan['total_installments'] > 0) {
-            // Create installment schedule
-            $installment_amount = $plan['installment_amount'];
+            // Check if schedules already exist
+            $check_schedule_sql = "SELECT COUNT(*) as count FROM installment_schedules WHERE payment_plan_id = ?";
+            $check_schedule_stmt = $conn->prepare($check_schedule_sql);
+            $check_schedule_stmt->execute([$input['payment_plan_id']]);
+            $schedule_exists = $check_schedule_stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
             
-            for ($i = 1; $i <= $plan['total_installments']; $i++) {
-                $due_date = date('Y-m-d', strtotime($plan['created_at'] . " +$i month"));
+            if (!$schedule_exists) {
+                // Create installment schedule
+                $installment_amount = $plan['installment_amount'];
                 
-                $installment_sql = "INSERT INTO installment_schedules (
-                    payment_plan_id, appointment_id, user_id, installment_number,
-                    installment_amount, due_date, status
-                ) VALUES (?, ?, ?, ?, ?, ?, 'pending')";
-                
-                $installment_stmt = $conn->prepare($installment_sql);
-                $installment_stmt->execute([
-                    $input['payment_plan_id'],
-                    $plan['appointment_id'],
-                    $plan['user_id'],
-                    $i,
-                    $installment_amount,
-                    $due_date
-                ]);
+                for ($i = 1; $i <= $plan['total_installments']; $i++) {
+                    $due_date = date('Y-m-d', strtotime($plan['created_at'] . " +$i month"));
+                    
+                    $installment_sql = "INSERT INTO installment_schedules (
+                        payment_plan_id, appointment_id, user_id, installment_number,
+                        installment_amount, due_date, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'pending')";
+                    
+                    $installment_stmt = $conn->prepare($installment_sql);
+                    $installment_stmt->execute([
+                        $input['payment_plan_id'],
+                        $plan['appointment_id'],
+                        $plan['user_id'],
+                        $i,
+                        $installment_amount,
+                        $due_date
+                    ]);
+                }
             }
         } elseif ($plan['booking_type'] === 'rent') {
-            // Create rent schedule for 12 months
-            for ($i = 1; $i <= 12; $i++) {
-                $due_date = date('Y-m-d', strtotime($plan['created_at'] . " +$i month"));
-                $month = date('n', strtotime($due_date));
-                $year = date('Y', strtotime($due_date));
-                
-                $rent_sql = "INSERT INTO rent_schedules (
-                    payment_plan_id, appointment_id, user_id, month, year,
-                    month_year, rent_amount, due_date, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
-                
-                $rent_stmt = $conn->prepare($rent_sql);
-                $rent_stmt->execute([
-                    $input['payment_plan_id'],
-                    $plan['appointment_id'],
-                    $plan['user_id'],
-                    $month,
-                    $year,
-                    date('M Y', strtotime($due_date)),
-                    $plan['monthly_rent_amount'],
-                    $due_date
-                ]);
+            // Check if rent schedules already exist
+            $check_rent_sql = "SELECT COUNT(*) as count FROM rent_schedules WHERE payment_plan_id = ?";
+            $check_rent_stmt = $conn->prepare($check_rent_sql);
+            $check_rent_stmt->execute([$input['payment_plan_id']]);
+            $rent_schedule_exists = $check_rent_stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
+            
+            if (!$rent_schedule_exists) {
+                // Create rent schedule for 12 months
+                for ($i = 1; $i <= 12; $i++) {
+                    $due_date = date('Y-m-d', strtotime($plan['created_at'] . " +$i month"));
+                    $month = date('n', strtotime($due_date));
+                    $year = date('Y', strtotime($due_date));
+                    
+                    $rent_sql = "INSERT INTO rent_schedules (
+                        payment_plan_id, appointment_id, user_id, month, year,
+                        month_year, rent_amount, due_date, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
+                    
+                    $rent_stmt = $conn->prepare($rent_sql);
+                    $rent_stmt->execute([
+                        $input['payment_plan_id'],
+                        $plan['appointment_id'],
+                        $plan['user_id'],
+                        $month,
+                        $year,
+                        date('M Y', strtotime($due_date)),
+                        $plan['monthly_rent_amount'],
+                        $due_date
+                    ]);
+                }
             }
         }
     }
@@ -165,11 +199,14 @@ try {
             'payment_method' => $input['payment_method'],
             'transaction_type' => $input['transaction_type'],
             'initial_payment_complete' => $initial_payment_complete,
-            'booking_confirmed' => $initial_payment_complete,
+            'booking_confirmed' => $booking_confirmed,
             'property_title' => $plan['property_title'],
             'customer_name' => $plan['username'],
             'customer_email' => $plan['email'],
-            'payment_date' => date('Y-m-d H:i:s')
+            'payment_date' => date('Y-m-d H:i:s'),
+            'appointment_id' => $plan['appointment_id'],
+            'property_id' => $plan['property_id'],
+            'property_status' => $new_property_status ?? 'available'
         ]
     ]);
     

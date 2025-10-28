@@ -4,6 +4,7 @@ import AuthContext from './contexts/AuthContext';
 import { API_URL } from './config';
 import { useToast } from './components/common/Toast';
 import { useCart } from './contexts/CartContext';
+import Swal from 'sweetalert2';
 
 const BookingForm = () => {
   const [searchParams] = useSearchParams();
@@ -61,7 +62,11 @@ const BookingForm = () => {
     
     // Check if user is a customer
     if (user && user.role !== 'customer') {
-      alert('Only customers can make property bookings');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only customers can make property bookings'
+      });
       navigate('/properties');
       return;
     }
@@ -154,6 +159,31 @@ const BookingForm = () => {
     });
   };
 
+  // Function to create appointment in database
+  const createAppointmentInDatabase = async (appointmentData) => {
+    try {
+      const response = await fetch(`${API_URL}/create-booking.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('Appointment created successfully:', result.data);
+        return result.data;
+      } else {
+        throw new Error(result.error || 'Failed to create appointment');
+      }
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -173,51 +203,54 @@ const BookingForm = () => {
 
       if (bookingType === 'sale') {
         // Add sale-specific fields
-        submitData.total_property_price = formData.total_property_price || null;
-        submitData.booking_money_amount = formData.booking_money_amount || null;
-        submitData.installment_option = formData.installment_option || null;
-        submitData.down_payment_details = formData.down_payment_details || null;
+        submitData.total_property_price = parseFloat(formData.total_property_price) || 0;
+        submitData.booking_money_amount = parseFloat(formData.booking_money_amount) || 0;
+        submitData.down_payment_details = parseFloat(formData.down_payment_details) || 0;
+        submitData.installment_option = formData.installment_option;
         submitData.registration_cost_responsibility = formData.registration_cost_responsibility;
-        submitData.handover_date = formData.handover_date || null;
-        submitData.previous_ownership_info = formData.previous_ownership_info || null;
-        submitData.developer_info = formData.developer_info || null;
+        submitData.handover_date = formData.handover_date;
+        submitData.previous_ownership_info = formData.previous_ownership_info;
+        submitData.developer_info = formData.developer_info;
       } else {
         // Add rent-specific fields
-        submitData.monthly_rent_amount = formData.monthly_rent_amount || null;
-        submitData.advance_deposit_amount = formData.advance_deposit_amount || null;
-        submitData.security_deposit_details = formData.security_deposit_details || null;
+        submitData.monthly_rent_amount = parseFloat(formData.monthly_rent_amount) || 0;
+        submitData.advance_deposit_amount = parseFloat(formData.advance_deposit_amount) || 0;
+        submitData.security_deposit_details = formData.security_deposit_details;
         submitData.maintenance_responsibility = formData.maintenance_responsibility;
-        submitData.utility_bills_responsibility = formData.utility_bills_responsibility || null;
-        // Removed emergency_contact field since it doesn't exist in the database
+        submitData.utility_bills_responsibility = formData.utility_bills_responsibility;
       }
 
+      // If we're updating an existing cart item
       if (existingCartItem) {
-        // Update existing cart item with booking form data
-        updateCartItemBookingForm(existingCartItem.id, submitData);
+        // Update the existing cart item with form data
+        updateCartItemBookingForm(existingCartItem.id, {
+          bookingFormCompleted: true,
+          bookingFormData: submitData
+        });
         
-        showSuccess(
-          <div>
-            {`${bookingType === 'sale' ? 'Sale' : 'Rent'} booking form completed successfully! `}
-            <a href="/shopping-cart" className="alert-link">View your cart</a>
-          </div>
-        );
-      } else {
-        // Add new item to cart
-        addToCart(submitData);
-        
-        showSuccess(
-          <div>
-            {`${bookingType === 'sale' ? 'Sale' : 'Rent'} booking added to cart successfully! `}
-            <a href="/shopping-cart" className="alert-link">View your cart</a>
-          </div>
-        );
+        showSuccess('Booking form updated successfully!');
+        navigate('/shopping-cart');
+        return;
       }
+
+      // Create appointment in database
+      const appointmentData = await createAppointmentInDatabase(submitData);
       
-      // Redirect to shopping cart page
+      // Add to cart with user association
+      const cartItemData = {
+        ...submitData,
+        appointment_id: appointmentData.id,
+        bookingFormCompleted: true,
+        user_id: user.id // Associate with current user
+      };
+      
+      const cartItemId = addToCart(cartItemData);
+      
+      showSuccess('Property added to cart successfully!');
       navigate('/shopping-cart');
     } catch (error) {
-      console.error('Booking submission error:', error);
-      showError(error.message || 'Failed to add booking to cart. Please try again.');
+      console.error('Error submitting booking form:', error);
+      showError(error.message || 'Failed to submit booking form');
     } finally {
       setLoading(false);
     }

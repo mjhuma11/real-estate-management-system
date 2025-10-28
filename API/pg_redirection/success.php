@@ -8,6 +8,14 @@
 
 error_reporting(0);
 ini_set('display_errors', 0);
+
+// Get the transaction data from POST
+$transaction_data = $_POST;
+
+// Redirect to the React app's booking success page with transaction data
+$redirect_url = "http://localhost:5173/booking-success?" . http_build_query($transaction_data);
+header("Location: " . $redirect_url);
+exit();
 ?>
 <!DOCTYPE html>
 
@@ -75,6 +83,32 @@ ini_set('display_errors', 0);
                                     <td><?= $_POST['amount'] . ' ' . $_POST['currency'] ?></td>
                                 </tr>
                             </table>
+
+                            <?php
+                            // Update appointment status in our system
+                            // Extract payment plan ID from the transaction
+                            $payment_sql = "SELECT * FROM payment_transactions WHERE transaction_id = ?";
+                            $payment_stmt = $conn_integration->prepare($payment_sql);
+                            $payment_stmt->bind_param("s", $tran_id);
+                            $payment_stmt->execute();
+                            $payment_result = $payment_stmt->get_result();
+                            $payment_record = $payment_result->fetch_assoc();
+                            
+                            if ($payment_record && $payment_record['appointment_id']) {
+                                // Update appointment status to confirmed
+                                $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = ?";
+                                $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
+                                $update_appointment_stmt->bind_param("i", $payment_record['appointment_id']);
+                                
+                                if ($update_appointment_stmt->execute()) {
+                                    echo '<div class="alert alert-success text-center">Booking confirmed successfully!</div>';
+                                } else {
+                                    echo '<div class="alert alert-warning text-center">Payment successful, but there was an issue updating your booking status. Please contact support.</div>';
+                                }
+                            } else {
+                                echo '<div class="alert alert-warning text-center">Payment successful, but booking information not found. Please contact support.</div>';
+                            }
+                            ?>
 
                         <?php
 

@@ -29,6 +29,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    // Clear property cart on logout
+    localStorage.removeItem('propertyCart');
   };
 
   const isAuthenticated = () => {

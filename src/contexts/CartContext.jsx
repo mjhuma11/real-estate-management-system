@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-// Note: We're not importing appointmentService since we don't need automatic syncing for property shopping cart
+import AuthContext from './AuthContext';
 
 const CartContext = createContext();
 
@@ -15,6 +15,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { user } = useContext(AuthContext);
 
   // Load cart items from localStorage on mount
   useEffect(() => {
@@ -30,8 +31,13 @@ export const CartProvider = ({ children }) => {
           
           // Validate that parsed data is an array
           if (Array.isArray(parsedCart)) {
-            setCartItems(parsedCart);
-            console.log('🛒 CartContext: ✅ Successfully loaded', parsedCart.length, 'items from localStorage');
+            // Filter cart items to only show items for the current user
+            const userCartItems = user 
+              ? parsedCart.filter(item => item.user_id === user.id)
+              : [];
+            
+            setCartItems(userCartItems);
+            console.log('🛒 CartContext: ✅ Successfully loaded', userCartItems.length, 'items from localStorage for user', user?.id);
             return;
           } else {
             console.error('🛒 CartContext: ❌ Invalid cart data format in localStorage (not an array)');
@@ -55,7 +61,7 @@ export const CartProvider = ({ children }) => {
 
     // Small delay to ensure localStorage is ready
     setTimeout(loadCartFromStorage, 100);
-  }, []);
+  }, [user]);
 
   // Save cart items to localStorage whenever cart changes (but only after initialization)
   useEffect(() => {
@@ -67,25 +73,50 @@ export const CartProvider = ({ children }) => {
     
     console.log('🛒 CartContext: 💾 Saving cart to localStorage:', cartItems);
     try {
-      const cartData = JSON.stringify(cartItems);
+      // Get existing cart data from localStorage
+      let existingCartData = [];
+      const savedCart = localStorage.getItem('propertyCart');
+      if (savedCart && savedCart !== 'undefined' && savedCart !== 'null') {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          if (Array.isArray(parsedCart)) {
+            existingCartData = parsedCart;
+          }
+        } catch (e) {
+          console.error('🛒 CartContext: ❌ Error parsing existing cart data:', e);
+        }
+      }
+      
+      // Filter out items for current user and add current cart items
+      let updatedCartData = existingCartData.filter(item => 
+        user ? item.user_id !== user.id : true
+      );
+      
+      // Add current user's cart items
+      updatedCartData = [...updatedCartData, ...cartItems];
+      
+      const cartData = JSON.stringify(updatedCartData);
       localStorage.setItem('propertyCart', cartData);
-      console.log('🛒 CartContext: ✅ Successfully saved', cartItems.length, 'items to localStorage');
+      console.log('🛒 CartContext: ✅ Successfully saved', cartItems.length, 'items to localStorage for user', user?.id);
       console.log('🛒 CartContext: 📄 Saved data:', cartData);
     } catch (e) {
       console.error('🛒 CartContext: ❌ Error saving cart data to localStorage:', e);
     }
-  }, [cartItems, isInitialized]);
+  }, [cartItems, isInitialized, user]);
 
   const addToCart = (appointmentData) => {
     console.log('🛒 CartContext: Adding item to cart:', appointmentData);
     const newItem = {
       id: Date.now(), // Temporary ID until submitted to backend
       ...appointmentData,
+      user_id: user?.id || null, // Associate with current user
       status: 'pending',
       createdAt: new Date().toISOString(),
       adminStatus: 'waiting', // waiting, accepted, rejected
-      bookingFormCompleted: false, // Track if booking form is filled
-      bookingFormData: null // Store booking form data when completed
+      bookingFormCompleted: appointmentData.bookingFormCompleted || false, // Track if booking form is filled
+      bookingFormData: appointmentData.bookingFormData || null, // Store booking form data when completed
+      appointment_id: appointmentData.appointment_id || null, // Store appointment ID if created
+      payment_plan_id: appointmentData.payment_plan_id || null // Store payment plan ID if created
     };
 
     setCartItems(prev => {
@@ -121,8 +152,10 @@ export const CartProvider = ({ children }) => {
       item.id === itemId 
         ? { 
             ...item, 
-            bookingFormCompleted: true,
-            bookingFormData: bookingFormData,
+            bookingFormCompleted: bookingFormData.bookingFormCompleted || true,
+            bookingFormData: bookingFormData.bookingFormData || bookingFormData,
+            appointment_id: bookingFormData.appointment_id || item.appointment_id,
+            payment_plan_id: bookingFormData.payment_plan_id || item.payment_plan_id,
             updatedAt: new Date().toISOString()
           }
         : item
@@ -131,6 +164,12 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
+  };
+
+  // Clear cart after successful booking
+  const clearCartAfterBooking = () => {
+    setCartItems([]);
+    // We don't remove from localStorage here because we want to keep other users' carts
   };
 
   const getCartCount = () => {
@@ -201,6 +240,7 @@ export const CartProvider = ({ children }) => {
     updateCartItemStatus,
     updateCartItemBookingForm,
     clearCart,
+    clearCartAfterBooking,
     getCartCount,
     getPendingCount,
     getAcceptedCount,

@@ -12,6 +12,8 @@ import Favourites from "./Favourites";
 import Cart from "./Cart";
 import ShoppingCart from "./ShoppingCart";
 import Checkout from "./Checkout";
+import BookingSuccess from "./BookingSuccess";
+import PaymentFailure from "./PaymentFailure";
 import Contact from "./Contact";
 import NoPage from "./NoPage";
 import Login from "./Login";
@@ -64,6 +66,8 @@ const App = () => {
               <Route path="cart" element={<Cart />} />
               <Route path="shopping-cart" element={<ShoppingCart />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="booking-success" element={<BookingSuccess />} />
+              <Route path="payment-failure" element={<PaymentFailure />} />
               <Route path="my-bookings" element={<UserBookings />} />
               <Route path="profile" element={<Profile />} />
               <Route path="contact" element={<Contact />} />
