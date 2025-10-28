@@ -263,11 +263,7 @@ export const CartProvider = ({ children }) => {
     updateCartItemStatus,
     updateCartItemBookingForm,
     clearCart,
-<<<<<<< HEAD
-    clearCartAfterBooking,
-=======
     clearCartAfterPayment,
->>>>>>> 94065ba511d7fbb97b81a3ed29a72093f194539c
     getCartCount,
     getPendingCount,
     getAcceptedCount,
