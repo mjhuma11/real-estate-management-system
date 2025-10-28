@@ -95,7 +95,8 @@ try {
     $booking_confirmed = false;
     
     if ($input['transaction_type'] === 'down_payment' || 
-        $input['transaction_type'] === 'advance_deposit') {
+        $input['transaction_type'] === 'advance_deposit' ||
+        $input['transaction_type'] === 'online_payment') {
         
         // Update appointment status to confirmed
         $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = ?";
@@ -104,6 +105,7 @@ try {
         
         $initial_payment_complete = true;
         $booking_confirmed = true;
+<<<<<<< HEAD
         
         // Update payment plan to reflect initial payment completion
         $update_plan_status_sql = "UPDATE payment_plans 
@@ -120,6 +122,8 @@ try {
         $update_property_sql = "UPDATE properties SET status = ? WHERE id = ?";
         $update_property_stmt = $conn->prepare($update_property_sql);
         $update_property_stmt->execute([$new_property_status, $plan['property_id']]);
+=======
+>>>>>>> 94065ba511d7fbb97b81a3ed29a72093f194539c
         
         // Generate payment schedules if not already created
         if ($plan['booking_type'] === 'sale' && $plan['total_installments'] > 0) {

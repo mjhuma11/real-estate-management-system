@@ -29,6 +29,7 @@ import 'aos/dist/aos.css';
 // User Components
 import UserBookings from "./UserBookings";
 import Profile from "./Profile";
+import PaymentSuccess from "./PaymentSuccess";
 
 // Admin Components
 import AdminLayout from "./components/admin/AdminLayout";
@@ -73,7 +74,7 @@ const App = () => {
               <Route path="contact" element={<Contact />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
-              
+              <Route path="payment-success" element={<PaymentSuccess />} />
 
             {/* Admin Routes */}
             <Route path="admin" element={

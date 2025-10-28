@@ -151,6 +151,9 @@ const Checkout = () => {
       return;
     }
 
+    // Clear cart immediately when pay button is clicked
+    clearCart();
+
     // Process payment through your API
     setProcessing(true);
     
