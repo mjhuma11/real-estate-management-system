@@ -93,6 +93,7 @@ try {
     // Check if this completes the initial payment requirement
     $initial_payment_complete = false;
     $booking_confirmed = false;
+    $new_property_status = 'available'; // Initialize the variable
     
     if ($input['transaction_type'] === 'down_payment' || 
         $input['transaction_type'] === 'advance_deposit' ||
@@ -105,7 +106,6 @@ try {
         
         $initial_payment_complete = true;
         $booking_confirmed = true;
-<<<<<<< HEAD
         
         // Update payment plan to reflect initial payment completion
         $update_plan_status_sql = "UPDATE payment_plans 
@@ -122,8 +122,6 @@ try {
         $update_property_sql = "UPDATE properties SET status = ? WHERE id = ?";
         $update_property_stmt = $conn->prepare($update_property_sql);
         $update_property_stmt->execute([$new_property_status, $plan['property_id']]);
-=======
->>>>>>> 94065ba511d7fbb97b81a3ed29a72093f194539c
         
         // Generate payment schedules if not already created
         if ($plan['booking_type'] === 'sale' && $plan['total_installments'] > 0) {
@@ -210,7 +208,7 @@ try {
             'payment_date' => date('Y-m-d H:i:s'),
             'appointment_id' => $plan['appointment_id'],
             'property_id' => $plan['property_id'],
-            'property_status' => $new_property_status ?? 'available'
+            'property_status' => $new_property_status
         ]
     ]);
     

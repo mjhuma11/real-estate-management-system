@@ -5,29 +5,6 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Create appointments table if it doesn't exist
-    $createTableQuery = "
-        CREATE TABLE IF NOT EXISTS appointments (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NULL,
-            agent_id INT DEFAULT 1,
-            property_id INT NOT NULL,
-            project_id INT NULL,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            phone VARCHAR(20) NOT NULL,
-            appointment_date DATE NOT NULL,
-            appointment_time TIME NOT NULL,
-            status ENUM('scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'scheduled',
-            admin_status ENUM('waiting', 'accepted', 'rejected') DEFAULT 'waiting',
-            notes TEXT NULL,
-            property_title VARCHAR(255) NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-    ";
-    $pdo->exec($createTableQuery);
-
     // Get all appointments with property information
     $query = "
         SELECT 

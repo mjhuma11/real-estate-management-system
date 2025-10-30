@@ -7,8 +7,8 @@
 error_reporting(0);
 
 require_once __DIR__ . "/../lib/SslCommerzNotification.php";
-include_once __DIR__ . "/../db_connection.php";
-include_once __DIR__ . "/../OrderTransaction.php";
+require_once __DIR__ . "/../db_connection.php";
+require_once __DIR__ . "/../OrderTransaction.php";
 
 use SslCommerz\SslCommerzNotification;
 
@@ -116,3 +116,4 @@ switch ($status) {
 
         break;
 }
+?>

@@ -7,15 +7,58 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Get the transaction data from POST
-$transaction_data = $_POST;
+// First check if the POST request is real!
+if (empty($_POST['tran_id']) || empty($_POST['status'])) {
+    // Redirect with error
+    $redirect_url = "http://localhost:5173/checkout?error=invalid_request&message=Invalid payment information";
+    header("Location: " . $redirect_url);
+    exit;
+}
 
-// Redirect to the React app with transaction data
-$redirect_url = "http://localhost:5173/checkout?" . http_build_query($transaction_data);
-header("Location: " . $redirect_url);
-exit();
+// Connect to database after confirming the request
+require_once(__DIR__ . "/../db_connection.php");
+require_once(__DIR__ . "/../OrderTransaction.php");
+
+$tran_id = trim($_POST['tran_id']);
+$ot = new OrderTransaction();
+$sql = $ot->getRecordQuery($tran_id);
+$result = $conn_integration->query($sql);
+$row = $result->fetch_array(MYSQLI_ASSOC);
+
+if ($row['status'] == 'Pending' || $row['status'] == 'Canceled') {
+    $sql = $ot->updateTransactionQuery($tran_id, 'Canceled');
+
+    if ($conn_integration->query($sql) === TRUE) {
+        // Redirect to checkout with cancellation details
+        $redirect_url = "http://localhost:5173/checkout?" . http_build_query($_POST);
+        header("Location: " . $redirect_url);
+        exit;
+    } else {
+        // Redirect with database error
+        $error_params = [
+            'error' => 'db_error',
+            'message' => 'Error updating record: ' . $conn_integration->error
+        ];
+        $redirect_url = "http://localhost:5173/checkout?" . http_build_query($error_params);
+        header("Location: " . $redirect_url);
+        exit;
+    }
+} elseif ($row['status'] == 'Processing') {
+    // Redirect with processing status
+    $redirect_url = "http://localhost:5173/checkout?" . http_build_query($_POST);
+    header("Location: " . $redirect_url);
+    exit;
+} else {
+    // Redirect with invalid status error
+    $error_params = [
+        'error' => 'invalid_status',
+        'message' => 'Invalid payment information'
+    ];
+    $redirect_url = "http://localhost:5173/checkout?" . http_build_query($error_params);
+    header("Location: " . $redirect_url);
+    exit;
+}
 ?>
-
 <!DOCTYPE html>
 
 <head>

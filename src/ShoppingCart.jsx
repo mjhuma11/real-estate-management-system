@@ -5,8 +5,8 @@ import AuthContext from './contexts/AuthContext';
 import Swal from 'sweetalert2';
 
 const ShoppingCart = () => {
-  const { cartItems, removeFromCart } = useCart();
-  const { isAuthenticated, isCustomer } = useContext(AuthContext);
+  const { cartItems, removeFromCart, clearCart } = useCart();
+  const { user, isAuthenticated, isCustomer } = useContext(AuthContext);
   const navigate = useNavigate();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 

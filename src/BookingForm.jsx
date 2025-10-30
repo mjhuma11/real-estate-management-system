@@ -34,6 +34,8 @@ const BookingForm = () => {
     booking_type: bookingType,
     booking_date: new Date().toISOString().split('T')[0],
     notes: '',
+    family_members_count: '', // Add this field
+    emergency_contact: '', // Add this field
     
     // Sale specific fields
     total_property_price: '',
@@ -51,7 +53,6 @@ const BookingForm = () => {
     security_deposit_details: '',
     maintenance_responsibility: 'Tenant',
     utility_bills_responsibility: ''
-    // Removed emergency_contact field since it doesn't exist in the database
   });
 
   useEffect(() => {
@@ -390,6 +391,29 @@ const BookingForm = () => {
                           required
                         />
                       </div>
+                      {/* Add these new fields */}
+                      <div className="col-md-6">
+                        <label className="form-label">Family Members Count</label>
+                        <input
+                          type="number"
+                          name="family_members_count"
+                          className="form-control"
+                          value={formData.family_members_count}
+                          onChange={handleInputChange}
+                          placeholder="Enter number of family members"
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label">Emergency Contact</label>
+                        <input
+                          type="text"
+                          name="emergency_contact"
+                          className="form-control"
+                          value={formData.emergency_contact}
+                          onChange={handleInputChange}
+                          placeholder="Enter emergency contact"
+                        />
+                      </div>
                     </div>
 
                     {/* Sale Specific Fields */}
@@ -579,7 +603,17 @@ const BookingForm = () => {
                               <option value="Shared">Shared</option>
                             </select>
                           </div>
-                          {/* Removed Emergency Contact field since it doesn't exist in the database */}
+                          <div className="col-md-6">
+                            <label className="form-label">Emergency Contact</label>
+                            <input
+                              type="text"
+                              name="emergency_contact"
+                              className="form-control"
+                              value={formData.emergency_contact}
+                              onChange={handleInputChange}
+                              placeholder="Enter emergency contact"
+                            />
+                          </div>
                         </div>
 
                         <div className="mb-3">

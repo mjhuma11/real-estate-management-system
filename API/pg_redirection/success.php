@@ -9,173 +9,75 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Get the transaction data from POST
-$transaction_data = $_POST;
+// Process the payment success and confirm the appointment
+require_once(__DIR__ . "/../lib/SslCommerzNotification.php");
+require_once(__DIR__ . "/../db_connection.php");
+require_once(__DIR__ . "/../OrderTransaction.php");
 
-// Redirect to the React app's booking success page with transaction data
-$redirect_url = "http://localhost:5173/booking-success?" . http_build_query($transaction_data);
-header("Location: " . $redirect_url);
-exit();
+use SslCommerz\SslCommerzNotification;
+
+$sslc = new SslCommerzNotification();
+$tran_id = $_POST['tran_id'];
+$amount =  $_POST['amount'];
+$currency =  $_POST['currency'];
+
+$ot = new OrderTransaction();
+$sql = $ot->getRecordQuery($tran_id);
+$result = $conn_integration->query($sql);
+$row = $result->fetch_array(MYSQLI_ASSOC);
+
+if ($row['status'] == 'Pending' || $row['status'] == 'Processing') {
+    $validated = $sslc->orderValidate($_POST, $tran_id, $amount, $currency);
+
+    if ($validated) {
+        $sql = $ot->updateTransactionQuery($tran_id, 'Processing');
+
+        if ($conn_integration->query($sql) === TRUE) {
+            // Get additional data from SSLCommerz value fields
+            $payment_plan_id = $_POST['value_a'] ?? '';
+            $booking_type = $_POST['value_b'] ?? '';
+            $property_id = $_POST['value_c'] ?? '';
+            $user_id = $_POST['value_d'] ?? '';
+            
+            // If we have the required data, process the appointment
+            if (!empty($payment_plan_id) && !empty($user_id) && !empty($property_id)) {
+                // Update the payment transaction to mark it as completed
+                $update_transaction_sql = "UPDATE payment_transactions SET payment_status = 'completed' WHERE transaction_id = ?";
+                $update_transaction_stmt = $conn_integration->prepare($update_transaction_sql);
+                $update_transaction_stmt->execute([$tran_id]);
+                
+                // Update appointment status to confirmed
+                $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = (SELECT appointment_id FROM payment_plans WHERE id = ?)";
+                $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
+                $update_appointment_stmt->execute([$payment_plan_id]);
+                
+                // Set a flag in localStorage to indicate that the cart should be cleared
+                // Redirect to the React payment success page with transaction data
+                $redirect_url = "http://localhost:5173/booking-success?" . http_build_query($_POST);
+                header("Location: " . $redirect_url);
+                exit();
+            } else {
+                // Redirect with error if we can't process the booking
+                $redirect_url = "http://localhost:5173/booking-success?error=partial_success&message=Payment successful but booking could not be processed completely";
+                header("Location: " . $redirect_url);
+                exit();
+            }
+        } else {
+            // Redirect with error if we can't update the transaction
+            $redirect_url = "http://localhost:5173/booking-success?error=update_failed&message=Error updating record";
+            header("Location: " . $redirect_url);
+            exit();
+        }
+    } else {
+        // Redirect with error if payment validation failed
+        $redirect_url = "http://localhost:5173/booking-success?error=validation_failed&message=Payment was not valid";
+        header("Location: " . $redirect_url);
+        exit();
+    }
+} else {
+    // Redirect with error if status is invalid
+    $redirect_url = "http://localhost:5173/booking-success?error=invalid_status&message=Invalid payment information";
+    header("Location: " . $redirect_url);
+    exit();
+}
 ?>
-<!DOCTYPE html>
-
-<head>
-    <meta name="author" content="SSLCommerz">
-    <title>Successful Transaction - SSLCommerz</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-</head>
-
-<body>
-    <div class="container">
-        <div class="row" style="margin-top: 10%;">
-            <div class="col-md-8 offset-md-2">
-
-                <?php
-                require_once(__DIR__ . "/../lib/SslCommerzNotification.php");
-                include_once(__DIR__ . "/../db_connection.php");
-                include_once(__DIR__ . "/../OrderTransaction.php");
-
-                use SslCommerz\SslCommerzNotification;
-
-                $sslc = new SslCommerzNotification();
-                $tran_id = $_POST['tran_id'];
-                $amount =  $_POST['amount'];
-                $currency =  $_POST['currency'];
-
-                $ot = new OrderTransaction();
-                $sql = $ot->getRecordQuery($tran_id);
-                $result = $conn_integration->query($sql);
-                $row = $result->fetch_array(MYSQLI_ASSOC);
-
-                if ($row['status'] == 'Pending' || $row['status'] == 'Processing') {
-                    $validated = $sslc->orderValidate($_POST, $tran_id, $amount, $currency);
-
-                    if ($validated) {
-                        $sql = $ot->updateTransactionQuery($tran_id, 'Processing');
-
-                        if ($conn_integration->query($sql) === TRUE) { ?>
-                            <h2 class="text-center text-success">Congratulations! Your Transaction is Successful.</h2>
-                            <br>
-                            <table border="1" class="table table-striped">
-                                <thead class="thead-dark">
-                                    <tr class="text-center">
-                                        <th colspan="2">Payment Details</th>
-                                    </tr>
-                                </thead>
-                                <tr>
-                                    <td class="text-right">Transaction ID</td>
-                                    <td><?= $_POST['tran_id'] ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-right">Transaction Time</td>
-                                    <td><?= $_POST['tran_date'] ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-right">Payment Method</td>
-                                    <td><?= $_POST['card_issuer'] ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-right">Bank Transaction ID</td>
-                                    <td><?= $_POST['bank_tran_id'] ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-right">Amount</td>
-                                    <td><?= $_POST['amount'] . ' ' . $_POST['currency'] ?></td>
-                                </tr>
-                            </table>
-
-                            <?php
-<<<<<<< HEAD
-                            // Update appointment status in our system
-                            // Extract payment plan ID from the transaction
-                            $payment_sql = "SELECT * FROM payment_transactions WHERE transaction_id = ?";
-                            $payment_stmt = $conn_integration->prepare($payment_sql);
-                            $payment_stmt->bind_param("s", $tran_id);
-                            $payment_stmt->execute();
-                            $payment_result = $payment_stmt->get_result();
-                            $payment_record = $payment_result->fetch_assoc();
-                            
-                            if ($payment_record && $payment_record['appointment_id']) {
-                                // Update appointment status to confirmed
-                                $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = ?";
-                                $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
-                                $update_appointment_stmt->bind_param("i", $payment_record['appointment_id']);
-                                
-                                if ($update_appointment_stmt->execute()) {
-                                    echo '<div class="alert alert-success text-center">Booking confirmed successfully!</div>';
-                                } else {
-                                    echo '<div class="alert alert-warning text-center">Payment successful, but there was an issue updating your booking status. Please contact support.</div>';
-                                }
-                            } else {
-                                echo '<div class="alert alert-warning text-center">Payment successful, but booking information not found. Please contact support.</div>';
-                            }
-                            ?>
-=======
-                            // Get additional data from SSLCommerz value fields
-                            $payment_plan_id = $_POST['value_a'] ?? '';
-                            $booking_type = $_POST['value_b'] ?? '';
-                            $property_id = $_POST['value_c'] ?? '';
-                            $user_id = $_POST['value_d'] ?? '';
-                            
-                            // If we have the required data, process the appointment
-                            if (!empty($payment_plan_id) && !empty($user_id) && !empty($property_id)) {
-                                // Update the payment transaction to mark it as completed
-                                $update_transaction_sql = "UPDATE payment_transactions SET payment_status = 'completed' WHERE transaction_id = ?";
-                                $update_transaction_stmt = $conn_integration->prepare($update_transaction_sql);
-                                $update_transaction_stmt->execute([$tran_id]);
-                                
-                                // Update appointment status to confirmed
-                                $update_appointment_sql = "UPDATE appointments SET status = 'confirmed' WHERE id = (SELECT appointment_id FROM payment_plans WHERE id = ?)";
-                                $update_appointment_stmt = $conn_integration->prepare($update_appointment_sql);
-                                $update_appointment_stmt->execute([$payment_plan_id]);
-                                
-                                // Set a flag in localStorage to indicate that the cart should be cleared
-                                ?>
-                                <div class="alert alert-info mt-4">
-                                    <h4 class="alert-heading">Booking Confirmed!</h4>
-                                    <p>Your property booking has been confirmed successfully. Redirecting to the payment success page...</p>
-                                </div>
-                                <script>
-                                    // Set a flag in localStorage to indicate that the cart should be cleared
-                                    localStorage.setItem('clearCartAfterPayment', 'true');
-                                    
-                                    // Redirect to the React payment success page
-                                    window.location.href = 'http://localhost/WDPF/React-project/real-estate-management-system/#/payment-success';
-                                </script>
-                                <?php
-                            } else {
-                                ?>
-                                <div class="alert alert-warning mt-4">
-                                    <h4 class="alert-heading">Partial Success</h4>
-                                    <p>Payment was successful, but we couldn't process your booking completely. Please contact support.</p>
-                                </div>
-                                <?php
-                            }
-                        ?>
->>>>>>> 94065ba511d7fbb97b81a3ed29a72093f194539c
-
-                        <?php
-
-                        } else { // update query returned error
-
-                            echo '<h2 class="text-center text-danger">Error updating record: </h2>' . $conn_integration->error;
-
-                        } // update query successful or not 
-
-                    } else { // $validated is false
-
-                        echo '<h2 class="text-center text-danger">Payment was not valid. Please contact with the merchant.</h2>';
-
-                    } // check if validated or not
-
-                } else { // status is something else
-
-                    echo '<h2 class="text-center text-danger">Invalid Information.</h2>';
-
-                } // status is 'Pending' or already 'Processing'
-                ?>
-
-            </div>
-        </div>
-    </div>
-</body>
